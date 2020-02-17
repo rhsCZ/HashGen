@@ -60,11 +60,11 @@ BOOL Chasher2App::InitInstance()
 		exit(-5);
 	}*/
 	SetErrorMode(0);
-	if (LoadLibraryA("libssl-3.dll") == NULL)
+	/*if (LoadLibraryA("libssl-3.dll") == NULL)
 	{
 		errormes = GetLastError();
 		error++;
-	}
+	}*/
 	if (LoadLibraryA("libcrypto-3.dll") == NULL)
 	{
 		errormes = GetLastError();

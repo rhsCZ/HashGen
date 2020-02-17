@@ -25,7 +25,7 @@ public:
 public:
 	virtual BOOL InitInstance();
 	int error = 0;
-	DWORD errormes;
+	DWORD errormes = 0;
 // Implementation
 
 	DECLARE_MESSAGE_MAP()

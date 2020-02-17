@@ -29,8 +29,8 @@ char* bin2hex(const unsigned char* bin, size_t len)
 
 	out = (char*)malloc(len * 2 + 1);
 	for (i = 0; i < len; i++) {
-		out[i * 2] = "0123456789ABCDEF"[bin[i] >> 4];
-		out[i * 2 + 1] = "0123456789ABCDEF"[bin[i] & 0x0F];
+		out[i * 2] = "0123456789abcdef"[bin[i] >> 4];
+		out[i * 2 + 1] = "0123456789abcdef"[bin[i] & 0x0F];
 	}
 	out[len * 2] = '\0';
 
@@ -81,7 +81,7 @@ BOOL Chasher2Dlg::OnInitDialog()
 	//  when the application's main window is not a dialog
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 	SetIcon(m_hIcon, FALSE);		// Set small icon
-	SetDlgItemTextW(IDC_RICHEDIT21, L"");
+	SetDlgItemTextW(IDC_COMBO1, L"MD5");
 	/*LPWSTR dir = L"";
 	char buff[500], buff2[500];
 	GetCurrentDirectory(MAX_PATH, dir);
@@ -182,26 +182,51 @@ void Chasher2Dlg::OnBnClickedButton1()
 	}
 	switch (hash)
 	{
-		case 1:
+		case 1:default:
 		{
-			res2 = MD5(input2, strlen(input),res);
+			MD5(input2, strlen(input),md5);
+			hex = bin2hex(md5, MD5_DIGEST_LENGTH);
+			memcpy(md5_2, hex, MD5_DIGEST_LENGTH*2);
+			SetDlgItemTextA(Chasher2Dlg::m_hWnd, IDC_RICHEDIT22, md5_2);
+			break;
+		}
+		case 2:
+		{
+			SHA256(input2,strlen(input),sha256);
+			hex = bin2hex(sha256,SHA256_DIGEST_LENGTH);
+			memcpy(sha256_2, hex, SHA256_DIGEST_LENGTH*2);
+			SetDlgItemTextA(Chasher2Dlg::m_hWnd, IDC_RICHEDIT22, sha256_2);
+			break;
+		}
+		case 3:
+		{
+			SHA512(input2, strlen(input), sha512);
+			hex = bin2hex(sha512, SHA512_DIGEST_LENGTH);
+			memcpy(sha512_2, hex, SHA512_DIGEST_LENGTH*2);
+			SetDlgItemTextA(Chasher2Dlg::m_hWnd, IDC_RICHEDIT22, sha512_2);
+			break;
+		}
+		case 4:
+		{
+			WHIRLPOOL(input2, strlen(input), whirlpool);
+			hex = bin2hex(whirlpool, WHIRLPOOL_DIGEST_LENGTH);
+			memcpy(whirlpool_2, hex, WHIRLPOOL_DIGEST_LENGTH*2);
+			SetDlgItemTextA(Chasher2Dlg::m_hWnd, IDC_RICHEDIT22, whirlpool_2);
+			break;
 		}
 	}
-	hex = bin2hex(res, 16);
+	
 	/*for (int i = 0; i < 32; i++) {
 		sprintf(hex,"%x", res[i]);
 	}
 	for (int i = 0; i < 32; i++) {
 		printf("%d", !!((res << i) & 0x80));
 	}*/
-	
-	int a;
-	a = (int)res;
 	/*for (i = 0; i < 32; i++) {
 		sprintf(&converted[i*2], "%0X", res[i]);
 	}*/
-	memcpy(result,hex,32);
-	SetDlgItemTextA(Chasher2Dlg::m_hWnd,IDC_RICHEDIT22,result);
+	
+	
 	//SetDlgItemTextW(IDC_RICHEDIT22, L"test");
 	//unsigned char *x = 0;
 	//MD5((unsigned char*)c, wcsnlen_s(stringd, 100000), x);*/
