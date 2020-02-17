@@ -40,7 +40,6 @@ public:
 	LPSTR input = new char[1000];
 	CString combo;
 	CString buffer, stringout;
-	char result[500] = {};
 	char* hex = {};
 	unsigned char res[WHIRLPOOL_DIGEST_LENGTH *4] = {};
 	char result[WHIRLPOOL_DIGEST_LENGTH * 4] = {};
