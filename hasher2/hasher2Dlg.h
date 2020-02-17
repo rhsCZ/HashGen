@@ -42,13 +42,7 @@ public:
 	CString buffer, stringout;
 	char result[500] = {};
 	char* hex = {};
-	unsigned char md5[MD5_DIGEST_LENGTH*2] = {};
-	unsigned char sha256[SHA256_DIGEST_LENGTH*2] = {};
-	unsigned char sha512[SHA512_DIGEST_LENGTH*2] = {};
-	unsigned char whirlpool[WHIRLPOOL_DIGEST_LENGTH*2] = {};
-	char md5_2[MD5_DIGEST_LENGTH * 4] = {};
-	char sha256_2[SHA256_DIGEST_LENGTH * 4] = {};
-	char sha512_2[SHA512_DIGEST_LENGTH * 4] = {};
-	char whirlpool_2[WHIRLPOOL_DIGEST_LENGTH * 4] = {};
+	unsigned char res[WHIRLPOOL_DIGEST_LENGTH *4] = {};
+	char result[WHIRLPOOL_DIGEST_LENGTH * 4] = {};
 	
 };

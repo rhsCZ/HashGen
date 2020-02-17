@@ -135,34 +135,34 @@ void Chasher2Dlg::OnBnClickedButton1()
 	{
 		case 1:default:
 		{
-			MD5(input2, strlen(input),md5);
-			hex = bin2hex(md5, MD5_DIGEST_LENGTH);
-			memcpy(md5_2, hex, MD5_DIGEST_LENGTH*2);
-			SetDlgItemTextA(Chasher2Dlg::m_hWnd, IDC_RICHEDIT22, md5_2);
+			MD5(input2, strlen(input),res);
+			hex = bin2hex(res, MD5_DIGEST_LENGTH);
+			memcpy(result, hex, MD5_DIGEST_LENGTH*2);
+			SetDlgItemTextA(Chasher2Dlg::m_hWnd, IDC_RICHEDIT22, result);
 			break;
 		}
 		case 2:
 		{
-			SHA256(input2,strlen(input),sha256);
-			hex = bin2hex(sha256,SHA256_DIGEST_LENGTH);
-			memcpy(sha256_2, hex, SHA256_DIGEST_LENGTH*2);
-			SetDlgItemTextA(Chasher2Dlg::m_hWnd, IDC_RICHEDIT22, sha256_2);
+			SHA256(input2,strlen(input),res);
+			hex = bin2hex(res,SHA256_DIGEST_LENGTH);
+			memcpy(result, hex, SHA256_DIGEST_LENGTH*2);
+			SetDlgItemTextA(Chasher2Dlg::m_hWnd, IDC_RICHEDIT22, result);
 			break;
 		}
 		case 3:
 		{
-			SHA512(input2, strlen(input), sha512);
-			hex = bin2hex(sha512, SHA512_DIGEST_LENGTH);
-			memcpy(sha512_2, hex, SHA512_DIGEST_LENGTH*2);
-			SetDlgItemTextA(Chasher2Dlg::m_hWnd, IDC_RICHEDIT22, sha512_2);
+			SHA512(input2, strlen(input), res);
+			hex = bin2hex(res, SHA512_DIGEST_LENGTH);
+			memcpy(result, hex, SHA512_DIGEST_LENGTH*2);
+			SetDlgItemTextA(Chasher2Dlg::m_hWnd, IDC_RICHEDIT22, result);
 			break;
 		}
 		case 4:
 		{
-			WHIRLPOOL(input2, strlen(input), whirlpool);
-			hex = bin2hex(whirlpool, WHIRLPOOL_DIGEST_LENGTH);
-			memcpy(whirlpool_2, hex, WHIRLPOOL_DIGEST_LENGTH*2);
-			SetDlgItemTextA(Chasher2Dlg::m_hWnd, IDC_RICHEDIT22, whirlpool_2);
+			WHIRLPOOL(input2, strlen(input), res);
+			hex = bin2hex(res, WHIRLPOOL_DIGEST_LENGTH);
+			memcpy(result, hex, WHIRLPOOL_DIGEST_LENGTH*2);
+			SetDlgItemTextA(Chasher2Dlg::m_hWnd, IDC_RICHEDIT22, result);
 			break;
 		}
 	}
