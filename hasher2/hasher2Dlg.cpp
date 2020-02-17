@@ -7,17 +7,13 @@
 #include "hasher2.h"
 #include "hasher2Dlg.h"
 #include "afxdialogex.h"
-//#include "atltypes.h"
-//#include "afxdd_.h"
-//#include "string"
-//#include "stdio.h"
+#include "afxwin.h"
 
 char* bin2hex(const unsigned char* bin, size_t len);
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
 using namespace std;
-// Chasher2Dlg dialog
 
 char* bin2hex(const unsigned char* bin, size_t len)
 {
@@ -35,19 +31,6 @@ char* bin2hex(const unsigned char* bin, size_t len)
 	out[len * 2] = '\0';
 
 	return out;
-}
-char* convert(const char* str) {
-	// Decimal vers hexa sera au max de même taille.
-	// +1 pour le ''\0'
-	int n = strlen(str) + 1;
-	char* res =(char*) malloc(n);
-	if (!res) {
-		return res;
-	}
-
-	int number = strtol(str, NULL, 0);
-	snprintf(res, n, "%x", number);
-	return res;
 }
 
 Chasher2Dlg::Chasher2Dlg(CWnd* pParent /*=nullptr*/)
@@ -70,53 +53,21 @@ BEGIN_MESSAGE_MAP(Chasher2Dlg, CDialog)
 END_MESSAGE_MAP()
 
 
-// Chasher2Dlg message handlers
-
 BOOL Chasher2Dlg::OnInitDialog()
 {
-	
+
 	//AfxInitRichEdit2();
 	CDialog::OnInitDialog();
-	// Set the icon for this dialog.  The framework does this automatically
-	//  when the application's main window is not a dialog
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 	SetIcon(m_hIcon, FALSE);		// Set small icon
-	SetDlgItemTextW(IDC_COMBO1, L"MD5");
-	/*LPWSTR dir = L"";
-	char buff[500], buff2[500];
-	GetCurrentDirectory(MAX_PATH, dir);
-	TRACE(dir);
-	//swprintf(buff,"%ls\\libssl-3.dll\0",dir);
-	//swprintf(buff2, "%ls\\lcrypto.dll\0",dir);
-	sprintf(buff, "%ls\\libssl-3.dll\0", dir);
-	sprintf(buff2, "%ls\\lcrypto-3.dll\0", dir);
-	/*if (PathFileExists(buff) && PathFileExists(buff2))
-	{
-		LoadLibrary(buff);
-		LoadLibrary(buff2);
-	}
-	else
-	{
-		exit(-5);
-	}*/
-	// TODO: Add extra initialization here
-	/*Chasher2Dlg dlg;
-	RECT cr = {
-	0,0,0,0
-	};
-	class CRichEditCtrl Create;
-	EDITSTREAM es;
-	CWnd* pWnd = CWnd::FromHandle(dlg.m_hWnd);
-	//es.dwCookie = (DWORD)"test";
-	//es.dwError = 0;
-	//Create.Create(ES_LEFT, cr,pWnd, IDC_RICHEDIT21);
-	//Create.StreamIn(SF_TEXT, es);*/
-	return TRUE;  // return TRUE  unless you set the focus to a control
+	return TRUE;
 }
-
-// If you add a minimize button to your dialog, you will need the code below
-//  to draw the icon.  For MFC applications using the document/view model,
-//  this is automatically done for you by the framework.
+void Chasher2Dlg::OnDestroy()
+{
+	CDialog::OnDestroy();
+	delete this;
+}
+ 
 
 void Chasher2Dlg::OnPaint()
 {

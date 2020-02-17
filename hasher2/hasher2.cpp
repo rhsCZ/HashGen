@@ -1,7 +1,3 @@
-
-// hasher2.cpp : Defines the class behaviors for the application.
-//
-
 #include "pch.h"
 #include "framework.h"
 #include "hasher2.h"
@@ -18,77 +14,59 @@ BEGIN_MESSAGE_MAP(Chasher2App, CWinApp)
 	ON_COMMAND(ID_HELP, &CWinApp::OnHelp)
 END_MESSAGE_MAP()
 
-
-// Chasher2App construction
-
 Chasher2App::Chasher2App()
 {
 	
-	
-	// TODO: add construction code here,
-	// Place all significant initialization in InitInstance
 }
-
-
-// The one and only Chasher2App object
 
 Chasher2App theApp;
 
-
-// Chasher2App initialization
-
 BOOL Chasher2App::InitInstance()
 {
-// TODO: call AfxInitRichEdit2() to initialize richedit2 library.\n"
 	AfxInitRichEdit2();
 	CWinApp::InitInstance();
-	/*LPWSTR dir = L"";
-	char buff[500], buff2[500];
-
-	GetCurrentDirectory(MAX_PATH, dir);
-	//swprintf(buff,"%ls\\libssl-3.dll\0",dir);
-	//swprintf(buff2, "%ls\\lcrypto.dll\0",dir);
-	sprintf(buff, "%ls\\libssl-3.dll\0", dir);
-	sprintf(buff2, "%ls\\lcrypto-3.dll\0", dir);
-	if (PathFileExists(buff) && PathFileExists(buff2))
-	{
-		LoadLibrary(buff);
-		LoadLibrary(buff2);
-	}
-	else
-	{
-		exit(-5);
-	}*/
-	SetErrorMode(0);
-	/*if (LoadLibraryA("libssl-3.dll") == NULL)
+	//SetErrorMode(0); //only debug
+	/*if (LoadLibraryA("libssl-3.dll") == NULL) //not important for crypto
 	{
 		errormes = GetLastError();
 		error++;
 	}*/
-	if (LoadLibraryA("libcrypto-3.dll") == NULL)
+	if (LoadLibraryA("libcrypto-3.dll") == NULL) //
 	{
-		errormes = GetLastError();
+		//errormes = GetLastError(); //for debug
 		error++;
 	}
 	if (error > 0)
 	{
 		exit(-5);
 	}
-	// Standard initialization
-	// If you are not using these features and wish to reduce the size
-	// of your final executable, you should remove from the following
-	// the specific initialization routines you do not need
-	// Change the registry key under which our settings are stored
-	// TODO: You should modify this string to be something appropriate
-	// such as the name of your company or organization
-	//SetRegistryKey(_T("Local AppWizard-Generated Applications"));
+	//SetDlgItemTextW(IDC_COMBO1, L"MD5");
+	
+	//SetRegistryKey(_T("Local AppWizard-Generated Applications")); //not needed
 
+/*	Chasher2App::m_pMainWnd->ShowWindow(SW_SHOW);
+	if (m_pDialog != NULL)
+	{
+		BOOL ret = m_pDialog->Create(IDD_HASHER2_DIALOG);
+
+		if (!ret)   //Create failed.
+		{
+			AfxMessageBox(_T("Error creating Dialog"));
+			delete m_pDialog;
+		}
+		else {
+			m_pDialog->ShowWindow(SW_SHOW);
+		}
+		
+	}
+	*/
+	
 	Chasher2Dlg dlg;
 	m_pMainWnd = &dlg;
 	//DWORD resultxy;
 	INT_PTR nResponse = dlg.DoModal();
 	//resultxy = GetLastError();
-	/*INT_PTR response =*/ //if (dlg.Create(IDD_HASHER2_DIALOG, 0) == 0)
+	//if (dlg.Create(IDD_HASHER2_DIALOG, 0) == 0)
 	//{
 		//exit(-1);
 	//}
@@ -116,8 +94,6 @@ BOOL Chasher2App::InitInstance()
 	ControlBarCleanUp();
 #endif
 
-	// Since the dialog has been closed, return FALSE so that we exit the
-	//  application, rather than start the application's message pump.
 	return FALSE;
 }
 

@@ -6,7 +6,6 @@
 #include <openssl/whrlpool.h>
 #pragma once
 #define bufferSize 10
-
 // Chasher2Dlg dialog
 class Chasher2Dlg : public CDialog
 {
@@ -21,6 +20,7 @@ public:
 
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support
+	virtual void Chasher2Dlg::OnDestroy();
 
 // Implementation
 protected:
@@ -50,4 +50,5 @@ public:
 	char sha256_2[SHA256_DIGEST_LENGTH * 4] = {};
 	char sha512_2[SHA512_DIGEST_LENGTH * 4] = {};
 	char whirlpool_2[WHIRLPOOL_DIGEST_LENGTH * 4] = {};
+	
 };

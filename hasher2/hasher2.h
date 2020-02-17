@@ -26,6 +26,7 @@ public:
 	virtual BOOL InitInstance();
 	int error = 0;
 	DWORD errormes = 0;
+	CDialog* m_pDialog = new CDialog;
 // Implementation
 
 	DECLARE_MESSAGE_MAP()
