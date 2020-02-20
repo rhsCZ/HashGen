@@ -20,7 +20,6 @@ Chasher2App::Chasher2App()
 }
 
 Chasher2App theApp;
-
 BOOL Chasher2App::InitInstance()
 {
 	AfxInitRichEdit2();

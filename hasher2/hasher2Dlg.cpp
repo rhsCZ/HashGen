@@ -8,6 +8,7 @@
 #include "hasher2Dlg.h"
 #include "afxdialogex.h"
 #include "afxwin.h"
+#include <thread>
 
 char* bin2hex(const unsigned char* bin, size_t len);
 #ifdef _DEBUG
@@ -48,27 +49,31 @@ BEGIN_MESSAGE_MAP(Chasher2Dlg, CDialog)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDC_BUTTON1, &Chasher2Dlg::OnBnClickedButton1)
-	ON_CBN_SELCHANGE(IDC_COMBO1, &Chasher2Dlg::OnCbnSelchangeCombo1)
+	//	ON_CBN_SELCHANGE(IDC_COMBO1, &Chasher2Dlg::OnCbnSelchangeCombo1)
 	ON_BN_CLICKED(ID_EXIT, &Chasher2Dlg::OnBnClickedExit)
 END_MESSAGE_MAP()
 
 
 BOOL Chasher2Dlg::OnInitDialog()
 {
-
 	//AfxInitRichEdit2();
+	Chasher2Dlg::ShowWindow(SW_SHOW);
+	Chasher2Dlg::RedrawWindow();
+	Chasher2Dlg::CenterWindow();
 	CDialog::OnInitDialog();
+	
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 	SetIcon(m_hIcon, FALSE);		// Set small icon
+	
+	
+	if (Chasher2Dlg::IsWindowVisible() != 0)
+	{
+		CComboBox* pCB = (CComboBox*)GetDlgItem(IDC_COMBO1);
+		pCB->SetCurSel(0);
+	}
+	
 	return TRUE;
 }
-void Chasher2Dlg::OnDestroy()
-{
-	CDialog::OnDestroy();
-	delete this;
-}
- 
-
 void Chasher2Dlg::OnPaint()
 {
 	if (IsIconic())
@@ -92,6 +97,7 @@ void Chasher2Dlg::OnPaint()
 	{
 		CDialog::OnPaint();
 	}
+	Chasher2Dlg::ShowWindow(SW_SHOW);
 }
 
 // The system calls this function to obtain the cursor to display while the user drags
@@ -104,7 +110,9 @@ HCURSOR Chasher2Dlg::OnQueryDragIcon()
 
 void Chasher2Dlg::OnBnClickedButton1()
 {
-	
+	CComboBox* pCB = (CComboBox*)GetDlgItem(IDC_COMBO1);
+	pCB->SetCurSel(0);
+	int hashlen;
 	SetDlgItemTextW(IDC_RICHEDIT22, L"");
 	GetDlgItemText(IDC_COMBO1,combo);
 	GetDlgItemTextA(Chasher2Dlg::m_hWnd, IDC_RICHEDIT21, input, 1000);
@@ -137,60 +145,40 @@ void Chasher2Dlg::OnBnClickedButton1()
 		{
 			MD5(input2, strlen(input),res);
 			hex = bin2hex(res, MD5_DIGEST_LENGTH);
-			memcpy(result, hex, MD5_DIGEST_LENGTH*2);
-			SetDlgItemTextA(Chasher2Dlg::m_hWnd, IDC_RICHEDIT22, result);
+			hashlen = MD5_DIGEST_LENGTH * 2;
 			break;
 		}
 		case 2:
 		{
 			SHA256(input2,strlen(input),res);
 			hex = bin2hex(res,SHA256_DIGEST_LENGTH);
-			memcpy(result, hex, SHA256_DIGEST_LENGTH*2);
-			SetDlgItemTextA(Chasher2Dlg::m_hWnd, IDC_RICHEDIT22, result);
+			hashlen = SHA256_DIGEST_LENGTH * 2;
 			break;
 		}
 		case 3:
 		{
 			SHA512(input2, strlen(input), res);
 			hex = bin2hex(res, SHA512_DIGEST_LENGTH);
-			memcpy(result, hex, SHA512_DIGEST_LENGTH*2);
-			SetDlgItemTextA(Chasher2Dlg::m_hWnd, IDC_RICHEDIT22, result);
+			hashlen = SHA512_DIGEST_LENGTH * 2;
 			break;
 		}
 		case 4:
 		{
 			WHIRLPOOL(input2, strlen(input), res);
 			hex = bin2hex(res, WHIRLPOOL_DIGEST_LENGTH);
-			memcpy(result, hex, WHIRLPOOL_DIGEST_LENGTH*2);
-			SetDlgItemTextA(Chasher2Dlg::m_hWnd, IDC_RICHEDIT22, result);
+			hashlen = WHIRLPOOL_DIGEST_LENGTH * 2;
 			break;
 		}
 	}
-	
-	/*for (int i = 0; i < 32; i++) {
-		sprintf(hex,"%x", res[i]);
-	}
-	for (int i = 0; i < 32; i++) {
-		printf("%d", !!((res << i) & 0x80));
-	}*/
-	/*for (i = 0; i < 32; i++) {
-		sprintf(&converted[i*2], "%0X", res[i]);
-	}*/
-	
-	
-	//SetDlgItemTextW(IDC_RICHEDIT22, L"test");
-	//unsigned char *x = 0;
-	//MD5((unsigned char*)c, wcsnlen_s(stringd, 100000), x);*/
-	
-
-		// TODO: Add your control notification handler code here
+	memcpy(result, hex, hashlen);
+	SetDlgItemTextA(Chasher2Dlg::m_hWnd, IDC_RICHEDIT22, result);
 }
 
 
-void Chasher2Dlg::OnCbnSelchangeCombo1()
-{
-	// TODO: Add your control notification handler code here
-}
+//void Chasher2Dlg::OnCbnSelchangeCombo1()
+//{
+//	// TODO: Add your control notification handler code here
+//}
 
 
 void Chasher2Dlg::OnBnClickedExit()
