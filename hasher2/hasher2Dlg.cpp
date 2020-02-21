@@ -110,8 +110,6 @@ HCURSOR Chasher2Dlg::OnQueryDragIcon()
 
 void Chasher2Dlg::OnBnClickedButton1()
 {
-	CComboBox* pCB = (CComboBox*)GetDlgItem(IDC_COMBO1);
-	pCB->SetCurSel(0);
 	int hashlen;
 	SetDlgItemTextW(IDC_RICHEDIT22, L"");
 	GetDlgItemText(IDC_COMBO1,combo);
