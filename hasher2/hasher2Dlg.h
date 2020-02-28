@@ -46,4 +46,9 @@ public:
 	char result[WHIRLPOOL_DIGEST_LENGTH * 4] = {};
 	BOOL retu = 0;
 	HANDLE thread1 = NULL;
+	CFont Font;
+	CButton* MD5check;
+	CButton* SHA256check;
+	CButton* SHA512check;
+	CButton* WHIRLcheck;
 };

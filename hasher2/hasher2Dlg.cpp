@@ -9,7 +9,6 @@
 #include "afxdialogex.h"
 #include "afxwin.h"
 #include <thread>
-
 char* bin2hex(const unsigned char* bin, size_t len);
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -56,6 +55,20 @@ END_MESSAGE_MAP()
 
 BOOL Chasher2Dlg::OnInitDialog()
 {
+	Font.CreateFont(12,                            // Height
+		0,                             // Width	
+		0,                             // Escapement
+		0,                             // Orientation
+		FW_NORMAL,                       // Weight
+		FALSE,                         // Italic
+		FALSE,                          // Underline
+		0,                             // StrikeOut
+		ANSI_CHARSET,                  // CharSet
+		OUT_DEFAULT_PRECIS,            // OutPrecision
+		CLIP_DEFAULT_PRECIS,           // ClipPrecision
+		DEFAULT_QUALITY,               // Quality
+		DEFAULT_PITCH | FF_SWISS,      // PitchAndFamily
+		L"Arial");
 	//AfxInitRichEdit2();
 	Chasher2Dlg::ShowWindow(SW_SHOW);
 	Chasher2Dlg::RedrawWindow();
@@ -68,8 +81,24 @@ BOOL Chasher2Dlg::OnInitDialog()
 	
 	if (Chasher2Dlg::IsWindowVisible() != 0)
 	{
-		CComboBox* pCB = (CComboBox*)GetDlgItem(IDC_COMBO1);
-		pCB->SetCurSel(0);
+		//CComboBox* pCB = (CComboBox*)GetDlgItem(IDC_COMBO1);
+		//pCB->SetCurSel(0);
+		MD5check = (CButton*)GetDlgItem(IDC_MD5CHECK);
+		SHA256check = (CButton*)GetDlgItem(IDC_SHA256CHECK);
+		SHA512check = (CButton*)GetDlgItem(IDC_SHA512CHECK);
+		WHIRLcheck = (CButton*)GetDlgItem(IDC_WHIRLCHECK);
+		MD5check->SetCheck(1);
+		SHA256check->SetCheck(1);
+		SHA512check->SetCheck(1);
+		WHIRLcheck->SetCheck(1);
+		CRichEditCtrl* rich1 = (CRichEditCtrl*)GetDlgItem(IDC_MD5OUT);
+		rich1->SetFont(&Font);
+		rich1 = (CRichEditCtrl*)GetDlgItem(IDC_SHA256OUT);
+		rich1->SetFont(&Font);
+		rich1 = (CRichEditCtrl*)GetDlgItem(IDC_SHA512OUT);
+		rich1->SetFont(&Font);
+		rich1 = (CRichEditCtrl*)GetDlgItem(IDC_WHIRLOUT);
+		rich1->SetFont(&Font);
 	}
 	
 	return TRUE;
@@ -111,73 +140,49 @@ HCURSOR Chasher2Dlg::OnQueryDragIcon()
 void Chasher2Dlg::OnBnClickedButton1()
 {
 	int hashlen;
-	SetDlgItemTextW(IDC_RICHEDIT22, L"");
-	GetDlgItemText(IDC_COMBO1,combo);
-	GetDlgItemTextA(Chasher2Dlg::m_hWnd, IDC_RICHEDIT21, input, 1000);
-	//GetDlgItemText(IDC_RICHEDIT21,input);
-	
+	//MD5check = (CButton*)GetDlgItem(IDC_MD5CHECK);
+	int ChkBox1 = MD5check->GetCheck();
+	//SHA256check = (CButton*)GetDlgItem(IDC_SHA256CHECK);
+	int ChkBox2 = SHA256check->GetCheck();
+	 //SHA512check = (CButton*)GetDlgItem(IDC_SHA512CHECK);
+	int ChkBox3 = SHA512check->GetCheck();
+	 //WHIRLcheck = (CButton*)GetDlgItem(IDC_WHIRLCHECK);
+	int ChkBox4 = WHIRLcheck->GetCheck();
+	GetDlgItemTextA(Chasher2Dlg::m_hWnd, IDC_INPUT, input, 1000);
 	memcpy(&input2, input, 1000);
-	if (combo == L"")
+	if (ChkBox1 == BST_CHECKED)
 	{
-		hash = 1;
+		MD5(input2, strlen(input), res);
+		hex = bin2hex(res, MD5_DIGEST_LENGTH);
+		hashlen = MD5_DIGEST_LENGTH * 2;
+		memcpy(result, hex, hashlen);
+		SetDlgItemTextA(Chasher2Dlg::m_hWnd, IDC_MD5OUT, result);
 	}
-	else if (combo == L"MD5")
+	if (ChkBox2 == BST_CHECKED)
 	{
-		hash = 1;
+		SHA256(input2, strlen(input), res);
+		hex = bin2hex(res, SHA256_DIGEST_LENGTH);
+		hashlen = SHA256_DIGEST_LENGTH * 2;
+		memcpy(result, hex, hashlen);
+		SetDlgItemTextA(Chasher2Dlg::m_hWnd, IDC_SHA256OUT, result);
 	}
-	else if (combo == L"SHA256")
+	if (ChkBox3 == BST_CHECKED)
 	{
-		hash = 2;
+		SHA512(input2, strlen(input), res);
+		hex = bin2hex(res, SHA512_DIGEST_LENGTH);
+		hashlen = SHA512_DIGEST_LENGTH * 2;
+		memcpy(result, hex, hashlen);
+		SetDlgItemTextA(Chasher2Dlg::m_hWnd, IDC_SHA512OUT, result);
 	}
-	else if (combo == L"SHA512")
+	if (ChkBox4 == BST_CHECKED)
 	{
-		hash = 3;
-	} 
-	else if (combo == L"WHIRLPOOL")
-	{
-		hash = 4;
+		WHIRLPOOL(input2, strlen(input), res);
+		hex = bin2hex(res, WHIRLPOOL_DIGEST_LENGTH);
+		hashlen = WHIRLPOOL_DIGEST_LENGTH * 2;
+		memcpy(result, hex, hashlen);
+		SetDlgItemTextA(Chasher2Dlg::m_hWnd, IDC_WHIRLOUT, result);
 	}
-	switch (hash)
-	{
-		case 1:default:
-		{
-			MD5(input2, strlen(input),res);
-			hex = bin2hex(res, MD5_DIGEST_LENGTH);
-			hashlen = MD5_DIGEST_LENGTH * 2;
-			break;
-		}
-		case 2:
-		{
-			SHA256(input2,strlen(input),res);
-			hex = bin2hex(res,SHA256_DIGEST_LENGTH);
-			hashlen = SHA256_DIGEST_LENGTH * 2;
-			break;
-		}
-		case 3:
-		{
-			SHA512(input2, strlen(input), res);
-			hex = bin2hex(res, SHA512_DIGEST_LENGTH);
-			hashlen = SHA512_DIGEST_LENGTH * 2;
-			break;
-		}
-		case 4:
-		{
-			WHIRLPOOL(input2, strlen(input), res);
-			hex = bin2hex(res, WHIRLPOOL_DIGEST_LENGTH);
-			hashlen = WHIRLPOOL_DIGEST_LENGTH * 2;
-			break;
-		}
-	}
-	memcpy(result, hex, hashlen);
-	SetDlgItemTextA(Chasher2Dlg::m_hWnd, IDC_RICHEDIT22, result);
 }
-
-
-//void Chasher2Dlg::OnCbnSelchangeCombo1()
-//{
-//	// TODO: Add your control notification handler code here
-//}
-
 
 void Chasher2Dlg::OnBnClickedExit()
 {
