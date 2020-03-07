@@ -1,0 +1,5 @@
+﻿  Generating code
+  Previous IPDB not found, fall back to full compilation.
+  All 191 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  hasher.vcxproj -> D:\github\hasher\hasher\output\Win32\Release\hasher.exe

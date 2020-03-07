@@ -3,10 +3,7 @@
 ################################################################################
 
 .vs/
-Debug/
-Release/
-hasher2/Debug/
-hasher2/release
+hasher2/output/
 releases/
 backup/
 .gitignore
