@@ -22,7 +22,7 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{94E2B8F7-AEDA-4379-B884-AE8D7EABDA28}</ProjectGuid>
     <Keyword>MFCProj</Keyword>
-    <RootNamespace>hasher2</RootNamespace>
+    <RootNamespace>hasher</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

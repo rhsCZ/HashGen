@@ -15,10 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="hasher2.h">
+    <ClInclude Include="hasher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="hasher2Dlg.h">
+    <ClInclude Include="hasherDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="framework.h">
@@ -35,10 +35,10 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="hasher2.cpp">
+    <ClCompile Include="hasher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="hasher2Dlg.cpp">
+    <ClCompile Include="hasherDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp">
@@ -46,17 +46,17 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="hasher2.rc">
+    <ResourceCompile Include="hasher.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\hasher2.rc2">
+    <None Include="res\hasher.rc2">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\hasher2.ico">
+    <Image Include="res\hasher.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
