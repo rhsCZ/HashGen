@@ -4,6 +4,7 @@
 //
 #define IDD_HASHER2_DIALOG              102
 #define IDR_ICON                        128
+#define IDR_MENU1                       132
 #define IDC_BUTTON1                     1000
 #define IDC_INPUT                       1001
 #define IDC_COMBO1                      1002
@@ -19,14 +20,17 @@
 #define IDC_RADIO1                      1012
 #define IDC_RADIO2                      1013
 #define IDC_INPUT2                      1019
+#define IDC_CHECK1                      1020
+#define ID_MENU_OPEN                    32771
+#define ID_MENU_CLOSE                   32772
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        132
-#define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1020
+#define _APS_NEXT_RESOURCE_VALUE        133
+#define _APS_NEXT_COMMAND_VALUE         32773
+#define _APS_NEXT_CONTROL_VALUE         1021
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -12,12 +12,37 @@ using namespace std;
 #pragma once
 #define bufferSize 10
 #define WM_SHOWPAGE WM_APP+2
+#define WM_TRAY_ICON_NOTIFY_MESSAGE (WM_USER + 1)
 // Chasher2Dlg dialog
 class ChasherDlg : public CDialog
 {
+private:
+	BOOL m_bMinimizeToTray;
+	BOOL			m_bTrayIconVisible;
+	NOTIFYICONDATA	m_nidIconData;
+	CMenu			m_mnuTrayMenu;
+	UINT			m_nDefaultMenuItem;
+	afx_msg LRESULT OnTrayNotify(WPARAM wParam, LPARAM lParam);
 // Construction
 public:
-	ChasherDlg(CWnd* pParent = nullptr);	// standard constructor
+	ChasherDlg(CWnd* pParent = nullptr);
+	void TraySetMinimizeToTray(BOOL bMinimizeToTray = TRUE);
+	BOOL TraySetMenu(UINT nResourceID, UINT nDefaultPos = 0);
+	BOOL TraySetMenu(HMENU hMenu, UINT nDefaultPos = 0);
+	BOOL TraySetMenu(LPCTSTR lpszMenuName, UINT nDefaultPos = 0);
+	BOOL TrayUpdate();
+	BOOL TrayShow();
+	BOOL TrayHide();
+	void TraySetToolTip(LPCTSTR lpszToolTip);
+	void TraySetIcon(HICON hIcon);
+	void TraySetIcon(UINT nResourceID);
+	void TraySetIcon(LPCTSTR lpszResourceName);
+	BOOL TrayIsVisible();
+	virtual void OnTrayLButtonDown(CPoint pt);
+	virtual void OnTrayLButtonDblClk(CPoint pt);
+	virtual void OnTrayRButtonDown(CPoint pt);
+	virtual void OnTrayRButtonDblClk(CPoint pt);
+	virtual void OnTrayMouseMove(CPoint pt);	// standard constructor
 
 // Dialog Data
 #ifdef AFX_DESIGN_TIME
@@ -35,6 +60,9 @@ protected:
 	virtual BOOL OnInitDialog();
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
+	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
+	afx_msg void OnDestroy();
+	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	DECLARE_MESSAGE_MAP()
 	
 public:
@@ -52,6 +80,7 @@ public:
 	BOOL retu = 0;
 	HANDLE thread1 = NULL;
 	CFont Font;
+	CButton* checkbox = {};
 	CButton* MD5check = {};
 	CButton* SHA256check = {};
 	CButton* SHA512check = {};
@@ -65,6 +94,7 @@ public:
 	unsigned long file_size = 0;
 	char* file_buffer = {};
 	int hashlen;
+	int boxcheck;
 	int ChkBox1;
 	int ChkBox2;
 	int ChkBox3;
@@ -74,4 +104,13 @@ public:
 	SHA256_CTX sha256Context;
 	SHA512_CTX sha512Context;
 	WHIRLPOOL_CTX whirlContext;
+	HKEY traykey;
+	DWORD traykeyvalue;
+	unsigned long size;
+	LSTATUS error;
+	unsigned long type;
+	DWORD* test;
+	DWORD keycreate;
+	afx_msg void OnBnClickedCheck1();
+	afx_msg void OnOpen();
 };

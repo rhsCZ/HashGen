@@ -11,6 +11,7 @@
 #include <thread>
 #include <fstream>
 #include <Windows.h>
+#pragma warning( disable : 4244 )
 unsigned long get_size_by_fd(int fd);
 char* bin2hex(const unsigned char* bin, size_t len);
 #ifdef _DEBUG
@@ -43,6 +44,16 @@ char* bin2hex(const unsigned char* bin, size_t len)
 ChasherDlg::ChasherDlg(CWnd* pParent /*=nullptr*/)
 	: CDialog(IDD_HASHER2_DIALOG, pParent)
 {
+	m_nidIconData.cbSize = sizeof(NOTIFYICONDATA);
+	m_nidIconData.hWnd = 0;
+	m_nidIconData.uID = 1;
+	m_nidIconData.uCallbackMessage = WM_TRAY_ICON_NOTIFY_MESSAGE;
+	m_nidIconData.hIcon = 0;
+	m_nidIconData.szTip[0] = 0;
+	m_nidIconData.uFlags = NIF_MESSAGE;
+	m_bTrayIconVisible = FALSE;
+	m_nDefaultMenuItem = 0;
+	m_bMinimizeToTray = TRUE;
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_ICON);
 }
 
@@ -53,17 +64,27 @@ void ChasherDlg::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(ChasherDlg, CDialog)
 	ON_WM_PAINT()
+	ON_WM_CREATE()
+	ON_WM_DESTROY()
+	ON_WM_SYSCOMMAND()
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDC_BUTTON1, &ChasherDlg::OnBnClickedButton1)
 	//	ON_CBN_SELCHANGE(IDC_COMBO1, &ChasherDlg::OnCbnSelchangeCombo1)
 	ON_BN_CLICKED(ID_EXIT, &ChasherDlg::OnBnClickedExit)
 	ON_BN_CLICKED(IDC_RADIO1, &ChasherDlg::OnBnClickedRadio1)
 	ON_BN_CLICKED(IDC_RADIO2, &ChasherDlg::OnBnClickedRadio2)
+	ON_MESSAGE(WM_TRAY_ICON_NOTIFY_MESSAGE, OnTrayNotify)
+	ON_BN_CLICKED(IDC_CHECK1, &ChasherDlg::OnBnClickedCheck1)
+	ON_COMMAND(ID_MENU_CLOSE, &ChasherDlg::OnBnClickedExit)
+	ON_COMMAND(ID_MENU_OPEN, &ChasherDlg::OnOpen)
 END_MESSAGE_MAP()
 
 
 BOOL ChasherDlg::OnInitDialog()
 {
+	size = sizeof(DWORD);
+	DWORD indata = 1;
+	type = REG_DWORD;
 	Font.CreateFont(12,                            // Height
 		0,                             // Width	
 		0,                             // Escapement
@@ -83,15 +104,57 @@ BOOL ChasherDlg::OnInitDialog()
 	ChasherDlg::RedrawWindow();
 	ChasherDlg::CenterWindow();
 	CDialog::OnInitDialog();
-	
+	error = RegOpenKeyExA(HKEY_CURRENT_USER, "Software", NULL, KEY_ALL_ACCESS | KEY_WOW64_64KEY, &traykey);
+	if (error != ERROR_SUCCESS)
+	{
+		exit(-4);
+	}
+	error = RegCreateKeyExA(traykey, "HashGen", NULL, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS | KEY_WOW64_64KEY, NULL, &traykey, &keycreate);
+	if (error != ERROR_SUCCESS)
+	{
+		exit(-6);
+	}
+	RegCloseKey(traykey);
+	error = RegOpenKeyExA(HKEY_CURRENT_USER, "Software\\HashGen", NULL, KEY_ALL_ACCESS | KEY_WOW64_64KEY, &traykey);
+	if (error != ERROR_SUCCESS)
+	{
+		exit(-4);
+	}
+	if (keycreate == REG_CREATED_NEW_KEY)
+	{
+		error = RegSetValueExA(traykey, "TrayEnable", NULL, type, (BYTE*)&indata, sizeof(indata));
+	}
+	if (error != ERROR_SUCCESS)
+	{
+		exit(-7);
+	}
+	//error = RegGetValueA(traykey,NULL,"TrayEnable", RRF_RT_ANY | KEY_WOW64_64KEY,&type2,&traykeyvalue,&size);
+	error = RegQueryValueExA(traykey, "TrayEnable",NULL,NULL, (LPBYTE)&traykeyvalue, &size);
+	CloseHandle(traykey);
+	//memcpy(&traykeyvalue,&test,sizeof(traykeyvalue));
+	if (error != ERROR_SUCCESS)
+	{
+		exit(-7);
+	}
+	if (traykeyvalue == 1)
+	{
+		m_bMinimizeToTray = TRUE;
+	}
+	else
+	{
+		m_bMinimizeToTray = FALSE;
+	}
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 	SetIcon(m_hIcon, FALSE);		// Set small icon
-	
+	TraySetIcon(m_hIcon);
+	TraySetToolTip(L"HashGen Tray icon");
+	TraySetMenu(IDR_MENU1);
 	
 	if (ChasherDlg::IsWindowVisible() != 0)
 	{
 		//CComboBox* pCB = (CComboBox*)GetDlgItem(IDC_COMBO1);
 		//pCB->SetCurSel(0);
+		checkbox = (CButton*)GetDlgItem(IDC_CHECK1);
 		input_1 = (CRichEditCtrl*)GetDlgItem(IDC_INPUT);
 		input_2 = (CMFCEditBrowseCtrl*)GetDlgItem(IDC_INPUT2);
 		MD5check = (CButton*)GetDlgItem(IDC_MD5CHECK);
@@ -114,6 +177,14 @@ BOOL ChasherDlg::OnInitDialog()
 		ChasherDlg::CheckDlgButton(IDC_RADIO1, BST_CHECKED);
 		//radio1->SetCheck(BST_CHECKED);
 		//radio1->SetCheck(BST_UNCHECKED);
+		if (traykeyvalue == 1)
+		{
+			CheckDlgButton(IDC_CHECK1, BST_CHECKED);
+		}
+		else
+		{
+			CheckDlgButton(IDC_CHECK1, BST_UNCHECKED);
+		}
 	}
 	
 	return TRUE;
@@ -325,4 +396,280 @@ void ChasherDlg::OnBnClickedRadio2()
 	input_1->ShowWindow(SW_HIDE);
 	input_2->ShowWindow(SW_SHOW);
 }
+void ChasherDlg::OnBnClickedCheck1()
+{
+	DWORD indata;
+	boxcheck = checkbox->GetCheck();
+	if (boxcheck == BST_CHECKED)
+	{
+		indata = 1;
+		error = RegOpenKeyExA(HKEY_CURRENT_USER, "Software\\HashGen", NULL, KEY_ALL_ACCESS | KEY_WOW64_64KEY, &traykey);
+		if (error != ERROR_SUCCESS)
+		{
+			exit(-4);
+		}
+		error = RegSetValueExA(traykey, "TrayEnable", NULL, type, (BYTE*)&indata, sizeof(indata));
+		if (error != ERROR_SUCCESS)
+		{
+			exit(-7);
+		}
+			m_bMinimizeToTray = TRUE;
+	}
+	else
+	{
+		indata = 0;
+		error = RegOpenKeyExA(HKEY_CURRENT_USER, "Software\\HashGen", NULL, KEY_ALL_ACCESS | KEY_WOW64_64KEY, &traykey);
+		if (error != ERROR_SUCCESS)
+		{
+			exit(-4);
+		}
+		error = RegSetValueExA(traykey, "TrayEnable", NULL, type, (BYTE*)&indata, sizeof(indata));
+		if (error != ERROR_SUCCESS)
+		{
+			exit(-7);
+		}
+		m_bMinimizeToTray = FALSE;
+	}
+}
+void ChasherDlg::OnOpen()
+{
+	if (TrayHide())
+	{ 
+		this->ShowWindow(SW_SHOW);
+	}
+}
+
+int ChasherDlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
+{
+	if (CDialog::OnCreate(lpCreateStruct) == -1)
+		return -1;
+
+	m_nidIconData.hWnd = this->m_hWnd;
+	m_nidIconData.uID = 1;
+
+	return 0;
+}
+
+void ChasherDlg::OnDestroy()
+{
+	CDialog::OnDestroy();
+	if (m_nidIconData.hWnd && m_nidIconData.uID > 0 && TrayIsVisible())
+	{
+		Shell_NotifyIcon(NIM_DELETE, &m_nidIconData);
+	}
+}
+
+BOOL ChasherDlg::TrayIsVisible()
+{
+	return m_bTrayIconVisible;
+}
+
+void ChasherDlg::TraySetIcon(HICON hIcon)
+{
+	ASSERT(hIcon);
+
+	m_nidIconData.hIcon = hIcon;
+	m_nidIconData.uFlags |= NIF_ICON;
+}
+
+void ChasherDlg::TraySetIcon(UINT nResourceID)
+{
+	ASSERT(nResourceID > 0);
+	HICON hIcon = 0;
+	hIcon = AfxGetApp()->LoadIcon(nResourceID);
+	if (hIcon)
+	{
+		m_nidIconData.hIcon = hIcon;
+		m_nidIconData.uFlags |= NIF_ICON;
+	}
+	else
+	{
+		TRACE0("FAILED TO LOAD ICON\n");
+	}
+}
+
+void ChasherDlg::TraySetIcon(LPCTSTR lpszResourceName)
+{
+	HICON hIcon = 0;
+	hIcon = AfxGetApp()->LoadIcon(lpszResourceName);
+	if (hIcon)
+	{
+		m_nidIconData.hIcon = hIcon;
+		m_nidIconData.uFlags |= NIF_ICON;
+	}
+	else
+	{
+		TRACE0("FAILED TO LOAD ICON\n");
+	}
+}
+
+void ChasherDlg::TraySetToolTip(LPCTSTR lpszToolTip)
+{
+	ASSERT(strlen((char*)lpszToolTip) > 0 && strlen((char*)lpszToolTip) < 64);
+
+	strcpy((char*)m_nidIconData.szTip, (char*)lpszToolTip);
+	m_nidIconData.uFlags |= NIF_TIP;
+}
+
+BOOL ChasherDlg::TrayShow()
+{
+	BOOL bSuccess = FALSE;
+	if (!m_bTrayIconVisible)
+	{
+		bSuccess = Shell_NotifyIcon(NIM_ADD, &m_nidIconData);
+		if (bSuccess)
+			m_bTrayIconVisible = TRUE;
+	}
+	else
+	{
+		TRACE0("ICON ALREADY VISIBLE");
+	}
+	return bSuccess;
+}
+
+BOOL ChasherDlg::TrayHide()
+{
+	BOOL bSuccess = FALSE;
+	if (m_bTrayIconVisible)
+	{
+		bSuccess = Shell_NotifyIcon(NIM_DELETE, &m_nidIconData);
+		if (bSuccess)
+			m_bTrayIconVisible = FALSE;
+	}
+	else
+	{
+		TRACE0("ICON ALREADY HIDDEN");
+	}
+	return bSuccess;
+}
+
+BOOL ChasherDlg::TrayUpdate()
+{
+	BOOL bSuccess = FALSE;
+	if (m_bTrayIconVisible)
+	{
+		bSuccess = Shell_NotifyIcon(NIM_MODIFY, &m_nidIconData);
+	}
+	else
+	{
+		TRACE0("ICON NOT VISIBLE");
+	}
+	return bSuccess;
+}
+
+
+BOOL ChasherDlg::TraySetMenu(UINT nResourceID, UINT nDefaultPos)
+{
+	BOOL bSuccess;
+	bSuccess = m_mnuTrayMenu.LoadMenu(nResourceID);
+	return bSuccess;
+}
+
+
+BOOL ChasherDlg::TraySetMenu(LPCTSTR lpszMenuName, UINT nDefaultPos)
+{
+	BOOL bSuccess;
+	bSuccess = m_mnuTrayMenu.LoadMenu(lpszMenuName);
+	return bSuccess;
+}
+
+BOOL ChasherDlg::TraySetMenu(HMENU hMenu, UINT nDefaultPos)
+{
+	m_mnuTrayMenu.Attach(hMenu);
+	return TRUE;
+}
+
+LRESULT ChasherDlg::OnTrayNotify(WPARAM wParam, LPARAM lParam)
+{
+	UINT uID;
+	UINT uMsg;
+
+	uID = (UINT)wParam;
+	uMsg = (UINT)lParam;
+
+	if (uID != 1)
+		return false;
+
+	CPoint pt;
+
+	switch (uMsg)
+	{
+	case WM_MOUSEMOVE:
+		GetCursorPos(&pt);
+		ClientToScreen(&pt);
+		OnTrayMouseMove(pt);
+		break;
+	case WM_LBUTTONDOWN:
+		GetCursorPos(&pt);
+		ClientToScreen(&pt);
+		OnTrayLButtonDown(pt);
+		break;
+	case WM_LBUTTONDBLCLK:
+		GetCursorPos(&pt);
+		ClientToScreen(&pt);
+		OnTrayLButtonDblClk(pt);
+		break;
+
+	case WM_RBUTTONDOWN:
+	case WM_CONTEXTMENU:
+		GetCursorPos(&pt);
+		//ClientToScreen(&pt);
+		OnTrayRButtonDown(pt);
+		break;
+	case WM_RBUTTONDBLCLK:
+		GetCursorPos(&pt);
+		ClientToScreen(&pt);
+		OnTrayRButtonDblClk(pt);
+		break;
+	}
+	return true;
+}
+void ChasherDlg::OnSysCommand(UINT nID, LPARAM lParam)
+{
+	if (m_bMinimizeToTray)
+	{
+		if ((nID & 0xFFF0) == SC_MINIMIZE)
+		{
+
+			if (TrayShow())
+				this->ShowWindow(SW_HIDE);
+		}
+		else
+			CDialog::OnSysCommand(nID, lParam);
+	}
+	else
+		CDialog::OnSysCommand(nID, lParam);
+}
+void ChasherDlg::TraySetMinimizeToTray(BOOL bMinimizeToTray)
+{
+	m_bMinimizeToTray = bMinimizeToTray;
+}
+
+
+void ChasherDlg::OnTrayRButtonDown(CPoint pt)
+{
+	m_mnuTrayMenu.GetSubMenu(0)->TrackPopupMenu(TPM_BOTTOMALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON, pt.x, pt.y, this);
+	m_mnuTrayMenu.GetSubMenu(0)->SetDefaultItem(m_nDefaultMenuItem, TRUE);
+}
+
+void ChasherDlg::OnTrayLButtonDown(CPoint pt)
+{
+
+}
+
+void ChasherDlg::OnTrayLButtonDblClk(CPoint pt)
+{
+	if (m_bMinimizeToTray)
+		if (TrayHide())
+			this->ShowWindow(SW_SHOW);
+}
+
+void ChasherDlg::OnTrayRButtonDblClk(CPoint pt)
+{
+}
+
+void ChasherDlg::OnTrayMouseMove(CPoint pt)
+{
+}
+
 
