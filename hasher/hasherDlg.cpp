@@ -454,6 +454,7 @@ void ChasherDlg::OnBnClickedButton1()
 	else
 	{
 		GetDlgItemTextA(ChasherDlg::m_hWnd, IDC_INPUT, input, 10000);
+		memcpy(input2, input, strlen(input));
 		if (ChkBox1 == BST_CHECKED)
 		{
 			MD5(input2, strlen(input), res);
