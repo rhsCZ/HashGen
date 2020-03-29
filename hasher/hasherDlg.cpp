@@ -270,7 +270,7 @@ BOOL ChasherDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 	TraySetIcon(m_hIcon);
 	TraySetToolTip(L"HashGen Tray icon");
-	TraySetMenu(IDR_MENU1);
+	TraySetMenu(ID_MENU_MINIMIZE);
 	
 	if (ChasherDlg::IsWindowVisible() != 0)
 	{
