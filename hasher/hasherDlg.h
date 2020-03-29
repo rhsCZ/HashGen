@@ -118,4 +118,7 @@ public:
 	afx_msg void OnMinimize();
 	afx_msg void OnBnClickedMinEn();
 	afx_msg void OnBnClickedTrayEn();
+	//int ChasherDlg::RegCrtKey(HKEY key, LPSTR keyloc, REGSAM access);
+	//int ChasherDlg::RegGetKey(HKEY key, LPSTR keyloc, REGSAM access, unsigned long type, LPSTR name, void* outdatax);
+	//bool ChasherDlg::RegSetKey(HKEY key, LPSTR keyloc, unsigned long type, unsigned long size, REGSAM access, LPSTR name, void* indatax);
 };

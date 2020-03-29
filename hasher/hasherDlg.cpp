@@ -11,6 +11,11 @@
 #include <thread>
 #include <fstream>
 #include <Windows.h>
+template<class TYPE>
+bool RegSetKey(HKEY key, LPSTR keyloc, unsigned long type, REGSAM access, LPSTR name, TYPE indatax);
+int RegCrtKey(HKEY key, LPSTR keyloc, REGSAM access);
+template<class TYPE>
+int RegGetKey(HKEY key, LPSTR keyloc, unsigned long type, REGSAM access, LPSTR name, TYPE outdatax);
 #pragma warning( disable : 4244 )
 unsigned long get_size_by_fd(int fd);
 char* bin2hex(const unsigned char* bin, size_t len);
@@ -41,6 +46,7 @@ char* bin2hex(const unsigned char* bin, size_t len)
 	return out;
 }
 
+
 ChasherDlg::ChasherDlg(CWnd* pParent /*=nullptr*/)
 	: CDialog(IDD_HASHER2_DIALOG, pParent)
 {
@@ -60,6 +66,103 @@ ChasherDlg::ChasherDlg(CWnd* pParent /*=nullptr*/)
 void ChasherDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
+}
+template<class TYPE>
+bool RegSetKey(HKEY key,LPSTR keyloc,unsigned long type, REGSAM access,LPSTR name,TYPE indatax)
+{
+	unsigned long size = sizeof(type);
+	char errorbuf[200];
+	HKEY keyval;
+	bool onerr = 1;
+	int err;
+	err = RegOpenKeyExA(key, keyloc, NULL, access, &keyval);
+	if (err != ERROR_SUCCESS)
+	{
+		sprintf_s(errorbuf, "%i\n", err);
+		onerr = 0;
+		ASSERT(errorbuf);
+	} else if(err == ERROR_SUCCESS)
+	{ 
+		err = RegSetValueExA(keyval, name, NULL, type, (BYTE*)indatax, size);
+		if (err != ERROR_SUCCESS)
+		{
+			sprintf_s(errorbuf, "%i\n", err);
+			onerr = 0;
+			ASSERT(errorbuf);
+		}
+	}
+	
+		CloseHandle(keyval);
+	return onerr;
+}
+int RegCrtKey(HKEY key, LPSTR keyloc, REGSAM access)
+{
+	HKEY keyval;
+	int err;
+	char errorbuf[200];
+	DWORD dispvalue;
+	err = RegCreateKeyExA(key, keyloc, NULL, NULL, REG_OPTION_NON_VOLATILE, access,NULL, &keyval, &dispvalue);
+	CloseHandle(keyval);
+	if (err == ERROR_SUCCESS)
+	{
+		if (dispvalue == REG_CREATED_NEW_KEY)
+		{
+			return 1;
+		}
+		else
+		{
+			return 2;
+		}
+	}
+	else
+	{
+		sprintf_s(errorbuf, "%i\n", err);
+		ASSERT(errorbuf);
+		return 0;
+	}
+	//return onerr;
+}
+template<class TYPE>
+int RegGetKey(HKEY key, LPSTR keyloc, unsigned long type, REGSAM access, LPSTR name, TYPE outdatax)
+{
+	unsigned long size = sizeof(type);
+	char errorbuf[200];
+	HKEY keyval;
+	int onerr = 0;
+	int err;
+	err = RegOpenKeyExA(key, keyloc, NULL, access, &keyval);
+	if (err != ERROR_SUCCESS)
+	{
+		onerr = false;
+	}
+	err = RegQueryValueExA(keyval, name, NULL, &type, (BYTE*)outdatax, &size);
+	switch (err)
+	{
+	case ERROR_FILE_NOT_FOUND:
+	{
+		onerr = 2;
+		break;
+	} 
+	case ERROR_MORE_DATA:
+	{
+		onerr = 3;
+		break;
+	}
+	case ERROR_SUCCESS:
+	{
+		onerr = 1;
+		break;
+	}
+	default:
+	{
+		sprintf_s(errorbuf, "%i\n", err);
+		ASSERT(errorbuf);
+		onerr = 0;
+		break;
+	}
+	}
+		CloseHandle(keyval);
+	return onerr;
 }
 
 BEGIN_MESSAGE_MAP(ChasherDlg, CDialog)
@@ -83,8 +186,11 @@ END_MESSAGE_MAP()
 
 BOOL ChasherDlg::OnInitDialog()
 {
+	int out;
 	size = sizeof(DWORD);
-	DWORD indata = 1;
+	DWORD indata =  1;
+	DWORD outdata = 0;
+	BYTE cmp = 1;
 	type = REG_DWORD;
 	Font.CreateFont(12,                            // Height
 		0,                             // Width	
@@ -105,63 +211,60 @@ BOOL ChasherDlg::OnInitDialog()
 	ChasherDlg::RedrawWindow();
 	ChasherDlg::CenterWindow();
 	CDialog::OnInitDialog();
-	error = RegOpenKeyExA(HKEY_CURRENT_USER, "Software", NULL, KEY_ALL_ACCESS | KEY_WOW64_64KEY, &traykey);
-	if (error != ERROR_SUCCESS)
+	out = RegCrtKey(HKEY_CURRENT_USER, "Software\\HashGen", KEY_ALL_ACCESS | KEY_WOW64_64KEY);
+	if (out == 1)
 	{
-		exit(-4);
+		RegSetKey(HKEY_CURRENT_USER, "Software\\HashGen", REG_DWORD, KEY_ALL_ACCESS | KEY_WOW64_64KEY, "TrayEnable", &indata);
+		RegSetKey(HKEY_CURRENT_USER, "Software\\HashGen", REG_DWORD, KEY_ALL_ACCESS | KEY_WOW64_64KEY, "TrayMinimize", &indata);
 	}
-	error = RegCreateKeyExA(traykey, "HashGen", NULL, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS | KEY_WOW64_64KEY, NULL, &traykey, &keycreate);
-	if (error != ERROR_SUCCESS)
+	else if(out == 0)
 	{
-		exit(-6);
-	}
-	RegCloseKey(traykey);
-	error = RegOpenKeyExA(HKEY_CURRENT_USER, "Software\\HashGen", NULL, KEY_ALL_ACCESS | KEY_WOW64_64KEY, &traykey);
-	if (error != ERROR_SUCCESS)
-	{
-		exit(-4);
-	}
-	if (keycreate == REG_CREATED_NEW_KEY)
-	{
-		error = RegSetValueExA(traykey, "TrayEnable", NULL, type, (BYTE*)&indata, sizeof(indata));
-		if (error != ERROR_SUCCESS)
-		{
-			exit(-7);
-		}
-		error = RegSetValueExA(traykey, "TrayMinimize", NULL, type, (BYTE*)&indata, sizeof(indata));
-	}
-	if (error != ERROR_SUCCESS)
-	{
-		exit(-7);
-	}
-	error = RegQueryValueExA(traykey, "TrayEnable",NULL,NULL, (LPBYTE)&traykeyvalue, &size);
-	if (error != ERROR_SUCCESS)
-	{
-		exit(-7);
-	}
-	if (traykeyvalue == 1)
-	{
-		trayenable = true;
-	}
-	else
-	{
-		trayenable = false;
-	}
-	error = RegQueryValueExA(traykey, "TrayMinimize", NULL, NULL, (LPBYTE)&traykeyvalue, &size);
-	CloseHandle(traykey);
-	if (error != ERROR_SUCCESS)
-	{
-		exit(-7);
-	}
-	if (traykeyvalue == 1)
-	{
+		trayenable = 1;
+		minimizeen = 1;
 		m_bMinimizeToTray = TRUE;
-		minimizeen = true;
 	}
-	else
+	else if (out == 2)
 	{
-		m_bMinimizeToTray = FALSE;
-		minimizeen = false;
+		out = RegGetKey(HKEY_CURRENT_USER, "Software\\HashGen", NULL, KEY_ALL_ACCESS | KEY_WOW64_64KEY, "TrayMinimize", &outdata);
+		if (out == 2)
+		{
+			
+			RegSetKey(HKEY_CURRENT_USER, "Software\\HashGen", REG_DWORD, KEY_ALL_ACCESS | KEY_WOW64_64KEY, "TrayMinimize", &indata);
+			
+			minimizeen = 1;
+			m_bMinimizeToTray = TRUE;
+		} else if (out == 1)
+		{ 
+			
+			if (outdata == 1)
+			{
+				minimizeen = 1;
+				m_bMinimizeToTray = TRUE;
+			}
+			else 
+			{
+				minimizeen = 0;
+				m_bMinimizeToTray = FALSE;
+			}
+		}
+		out = RegGetKey(HKEY_CURRENT_USER, "Software\\HashGen", REG_DWORD, KEY_ALL_ACCESS | KEY_WOW64_64KEY, "TrayEnable", &outdata);
+		if (out == 2)
+		{
+
+			RegSetKey(HKEY_CURRENT_USER, "Software\\HashGen", REG_DWORD, KEY_ALL_ACCESS | KEY_WOW64_64KEY, "TrayMinimize", &indata);
+			trayenable = 1;
+		}
+		else if (out == 1)
+		{ 
+			if (outdata == 1)
+			{
+				trayenable = 1;
+			}
+			else
+			{
+				trayenable = 0;
+			}
+		}
 	}
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 	SetIcon(m_hIcon, FALSE);		// Set small icon
@@ -415,37 +518,19 @@ void ChasherDlg::OnBnClickedRadio2()
 }
 void ChasherDlg::OnBnClickedMinEn()
 {
-	DWORD indata;
+	DWORD indata = 0;
 	boxcheck = checkbox->GetCheck();
 	if (boxcheck == BST_CHECKED)
 	{
 		indata = 1;
-		error = RegOpenKeyExA(HKEY_CURRENT_USER, "Software\\HashGen", NULL, KEY_ALL_ACCESS | KEY_WOW64_64KEY, &traykey);
-		if (error != ERROR_SUCCESS)
-		{
-			exit(-4);
-		}
-		error = RegSetValueExA(traykey, "TrayMinimize", NULL, type, (BYTE*)&indata, sizeof(indata));
-		if (error != ERROR_SUCCESS)
-		{
-			exit(-7);
-		}
-			m_bMinimizeToTray = TRUE;
-			minimizeen = true;
+		RegSetKey(HKEY_CURRENT_USER, "Software\\HashGen", REG_DWORD, KEY_ALL_ACCESS | KEY_WOW64_64KEY, "TrayMinimize", &indata);
+		m_bMinimizeToTray = TRUE;
+		minimizeen = true;
 	}
 	else
 	{
 		indata = 0;
-		error = RegOpenKeyExA(HKEY_CURRENT_USER, "Software\\HashGen", NULL, KEY_ALL_ACCESS | KEY_WOW64_64KEY, &traykey);
-		if (error != ERROR_SUCCESS)
-		{
-			exit(-4);
-		}
-		error = RegSetValueExA(traykey, "TrayMinimize", NULL, type, (BYTE*)&indata, sizeof(indata));
-		if (error != ERROR_SUCCESS)
-		{
-			exit(-7);
-		}
+		RegSetKey(HKEY_CURRENT_USER, "Software\\HashGen", REG_DWORD, KEY_ALL_ACCESS | KEY_WOW64_64KEY, "TrayMinimize", &indata);
 		m_bMinimizeToTray = FALSE;
 		minimizeen = false;
 	}
@@ -453,48 +538,23 @@ void ChasherDlg::OnBnClickedMinEn()
 void ChasherDlg::OnBnClickedTrayEn()
 {
 	int tren;
-	DWORD indata;
+	DWORD indata = 0;
 	tren = trayen->GetCheck();
-	if (boxcheck == BST_CHECKED)
+	if (tren == BST_CHECKED)
 	{
 		indata = 1;
-		error = RegOpenKeyExA(HKEY_CURRENT_USER, "Software\\HashGen", NULL, KEY_ALL_ACCESS | KEY_WOW64_64KEY, &traykey);
-		if (error != ERROR_SUCCESS)
-		{
-			exit(-4);
-		}
-		error = RegSetValueExA(traykey, "TrayEnable", NULL, type, (BYTE*)&indata, sizeof(indata));
-		if (error != ERROR_SUCCESS)
-		{
-			exit(-7);
-		}
+		RegSetKey(HKEY_CURRENT_USER, "Software\\HashGen", REG_DWORD, KEY_ALL_ACCESS | KEY_WOW64_64KEY, "TrayEnable", &indata);
 		trayenable = true;
-		if(minimizeen)
-		{ 
-			m_bMinimizeToTray = TRUE;
-		}
-		else
-		{
-			m_bMinimizeToTray = FALSE;
-		}
-		
+		checkbox->EnableWindow();
 		TrayShow();
 	}
 	else
 	{
 		indata = 0;
-		error = RegOpenKeyExA(HKEY_CURRENT_USER, "Software\\HashGen", NULL, KEY_ALL_ACCESS | KEY_WOW64_64KEY, &traykey);
-		if (error != ERROR_SUCCESS)
-		{
-			exit(-4);
-		}
-		error = RegSetValueExA(traykey, "TrayEnable", NULL, type, (BYTE*)&indata, sizeof(indata));
-		if (error != ERROR_SUCCESS)
-		{
-			exit(-7);
-		}
+		RegSetKey(HKEY_CURRENT_USER, "Software\\HashGen", REG_DWORD, KEY_ALL_ACCESS | KEY_WOW64_64KEY, "TrayEnable", &indata);
 		trayenable = false;
 		m_bMinimizeToTray = FALSE;
+		checkbox->EnableWindow(0);
 		TrayHide();
 	}
 }
