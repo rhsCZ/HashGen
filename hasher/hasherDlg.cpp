@@ -11,12 +11,15 @@
 #include <thread>
 #include <fstream>
 #include <Windows.h>
+HWND mhwnd;
 template<class TYPE>
 bool RegSetKey(HKEY key, LPSTR keyloc, unsigned long type, REGSAM access, LPSTR name, TYPE indatax);
 int RegCrtKey(HKEY key, LPSTR keyloc, REGSAM access);
 template<class TYPE>
 int RegGetKey(HKEY key, LPSTR keyloc, unsigned long type, REGSAM access, LPSTR name, TYPE outdatax);
-#pragma warning( disable : 4244 )
+#pragma warning( disable:4244)
+#pragma warning(disable:6387)
+#pragma warning(disable:6011)
 unsigned long get_size_by_fd(int fd);
 char* bin2hex(const unsigned char* bin, size_t len);
 #ifdef _DEBUG
@@ -45,7 +48,146 @@ char* bin2hex(const unsigned char* bin, size_t len)
 
 	return out;
 }
-
+void ChasherDlg::hash(char* input, char* output, int hashtype, bool typein)
+{
+	unsigned char input2[1000] = {};
+	char *buf = (char*)malloc(1024 * 500);
+	char *hex = (char*)malloc(WHIRLPOOL_DIGEST_LENGTH*4);
+	unsigned char res[WHIRLPOOL_DIGEST_LENGTH * 4] = {};
+	MD5_CTX md5Context;
+	SHA256_CTX sha256Context;
+	SHA512_CTX sha512Context;
+	WHIRLPOOL_CTX whirlContext;
+	//char* hex = new char[1000];
+	fstream filex;
+	sprintf_s(output, sizeof(output), "\0");
+	sprintf_s(buf, sizeof(buf), "\0");
+	sprintf_s(hex, sizeof(hex), "\0");
+	if (typein)
+	{ 
+		switch (hashtype)
+		{
+			case 1:
+			{
+				filex.open(input, ifstream::binary | ifstream::in);
+				MD5_Init(&md5Context);
+				while (filex.good())
+				{
+					filex.read(buf, sizeof(buf));
+					MD5_Update(&md5Context, buf, filex.gcount());
+				}
+				MD5_Final(res, &md5Context);
+				hex = bin2hex(res, MD5_DIGEST_LENGTH);
+				memcpy(output, hex, strlen(hex));
+				output[strlen(hex)] = '\0';
+				filex.close();
+				break;
+			}
+			case 2:
+			{
+				filex.open(input, ifstream::binary | ifstream::in);
+				SHA256_Init(&sha256Context);
+				while (filex.good())
+				{
+					filex.read(buf, sizeof(buf));
+					SHA256_Update(&sha256Context, buf, filex.gcount());
+				}
+				SHA256_Final(res, &sha256Context);
+				hex = bin2hex(res, SHA256_DIGEST_LENGTH);
+				memcpy(output, hex, strlen(hex));
+				output[strlen(hex)] = '\0';
+				filex.close();
+				break;
+			}
+			case 3:
+			{
+				filex.open(input, ifstream::binary | ifstream::in);
+				SHA512_Init(&sha512Context);
+				while (filex.good())
+				{
+				filex.read(buf, sizeof(buf));
+				SHA512_Update(&sha512Context, buf, filex.gcount());
+				}
+				SHA512_Final(res, &sha512Context);
+				hex = bin2hex(res, SHA512_DIGEST_LENGTH);
+				memcpy(output, hex, strlen(hex));
+				output[strlen(hex)] = '\0';
+				filex.close();
+				break;
+			}
+			case 4:
+			{
+				filex.open(input, ifstream::binary | ifstream::in);
+				WHIRLPOOL_Init(&whirlContext);
+				while (filex.good())
+				{
+					filex.read(buf, sizeof(buf));
+					WHIRLPOOL_Update(&whirlContext, buf, filex.gcount());
+				}
+				WHIRLPOOL_Final(res, &whirlContext);
+				hex = bin2hex(res, WHIRLPOOL_DIGEST_LENGTH);
+				memcpy(output, hex, strlen(hex));
+				output[strlen(hex)] = '\0';
+				filex.close();
+				break;
+			}
+		}
+		for (int i = 0; i <= strlen(output); i++)
+		{
+			if (output[i] >= 97 && output[i] <= 122)
+			{
+				output[i] = output[i] - 32;
+			}
+		}
+	}
+	else
+	{
+		memcpy(input2, input, strlen(input));
+		switch (hashtype)
+		{
+			case 1:
+			{
+				MD5(input2, strlen(input), res);
+				hex = bin2hex(res, MD5_DIGEST_LENGTH);
+				memcpy(output, hex, strlen(hex));
+				output[strlen(hex)] = '\0';
+				break;
+			}
+			case 2:
+			{
+				SHA256(input2, strlen(input), res);
+				hex = bin2hex(res, SHA256_DIGEST_LENGTH);
+				memcpy(output, hex, strlen(hex));
+				output[strlen(hex)] = '\0';
+				break;
+			}
+			case 3:
+			{
+				SHA512(input2, strlen(input), res);
+				hex = bin2hex(res, SHA512_DIGEST_LENGTH);
+				memcpy(output, hex, strlen(hex));
+				output[strlen(hex)] = '\0';
+				break;
+			}
+			case 4:
+			{
+				WHIRLPOOL(input2, strlen(input), res);
+				hex = bin2hex(res, WHIRLPOOL_DIGEST_LENGTH);
+				memcpy(output, hex, strlen(hex));
+				output[strlen(hex)] = '\0';
+				break;
+			}
+		}
+		for (int i = 0; i <= strlen(output); i++)
+		{
+			if (output[i] >= 97 && output[i] <= 122)
+			{
+				output[i] = output[i] - 32;
+			}
+		}
+	}
+			
+}
 
 ChasherDlg::ChasherDlg(CWnd* pParent /*=nullptr*/)
 	: CDialog(IDD_HASHER2_DIALOG, pParent)
@@ -181,8 +323,117 @@ BEGIN_MESSAGE_MAP(ChasherDlg, CDialog)
 	ON_COMMAND(ID_MENU_CLOSE, &ChasherDlg::OnBnClickedExit)
 	ON_COMMAND(ID_MENU_OPEN, &ChasherDlg::OnOpen)
 	ON_COMMAND(ID_MENU_MINIMIZE, &ChasherDlg::OnMinimize)
+	ON_MESSAGE(ID_HASH_COPY, &ChasherDlg::OnCopy)
+	ON_MESSAGE(ID_HASH_COPY1, &ChasherDlg::OnCopy1)
+	ON_MESSAGE(ID_HASH_COPY2, &ChasherDlg::OnCopy2)
+	ON_MESSAGE(ID_HASH_COPY3, &ChasherDlg::OnCopy3)
+	ON_MESSAGE(ID_HASH_PASTE, &ChasherDlg::OnPaste)
+	ON_MESSAGE(ID_HASH_CLEAR, &ChasherDlg::OnClear)
+	ON_BN_CLICKED(IDC_TEST, &ChasherDlg::OnBnClickedButton2)
 END_MESSAGE_MAP()
+BOOL ChasherDlg::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult)
+{
+	// TODO: Add your specialized code here and/or call the base class
+	MSGFILTER* lpMsgFilter = (MSGFILTER*)lParam;
 
+	if ((wParam == IDC_MD5OUT) && (lpMsgFilter->nmhdr.code == EN_MSGFILTER)
+		&& (lpMsgFilter->msg == WM_RBUTTONDOWN))
+
+	{
+		//if we get through here, we have trapped the right click event of the richeditctrl! 
+		CPoint point;
+		::GetCursorPos(&point); //where is the mouse?
+		CMenu menu; //lets display out context menu :) 
+		UINT dwSelectionMade;
+		VERIFY(menu.LoadMenu(IDR_HASH));
+		CMenu* pmenuPopup = menu.GetSubMenu(0);
+		ASSERT(pmenuPopup != NULL);
+		dwSelectionMade = pmenuPopup->TrackPopupMenu((TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_NONOTIFY | TPM_RETURNCMD),
+			point.x, point.y, this
+		);
+
+		pmenuPopup->DestroyMenu();
+		PostMessage(dwSelectionMade, 0, 0);
+	}
+	else if ((wParam == IDC_SHA256OUT) && (lpMsgFilter->nmhdr.code == EN_MSGFILTER)
+		&& (lpMsgFilter->msg == WM_RBUTTONDOWN))
+
+	{
+		//if we get through here, we have trapped the right click event of the richeditctrl! 
+		CPoint point;
+		::GetCursorPos(&point); //where is the mouse?
+		CMenu menu; //lets display out context menu :) 
+		UINT dwSelectionMade;
+		VERIFY(menu.LoadMenu(IDR_HASH1));
+		CMenu* pmenuPopup = menu.GetSubMenu(0);
+		ASSERT(pmenuPopup != NULL);
+		dwSelectionMade = pmenuPopup->TrackPopupMenu((TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_NONOTIFY | TPM_RETURNCMD),
+			point.x, point.y, this
+		);
+
+		pmenuPopup->DestroyMenu();
+		PostMessage(dwSelectionMade, 0, 0);
+	}
+	else if ((wParam == IDC_SHA512OUT) && (lpMsgFilter->nmhdr.code == EN_MSGFILTER)
+		&& (lpMsgFilter->msg == WM_RBUTTONDOWN))
+
+	{
+		//if we get through here, we have trapped the right click event of the richeditctrl! 
+		CPoint point;
+		::GetCursorPos(&point); //where is the mouse?
+		CMenu menu; //lets display out context menu :) 
+		UINT dwSelectionMade;
+		VERIFY(menu.LoadMenu(IDR_HASH2));
+		CMenu* pmenuPopup = menu.GetSubMenu(0);
+		ASSERT(pmenuPopup != NULL);
+		dwSelectionMade = pmenuPopup->TrackPopupMenu((TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_NONOTIFY | TPM_RETURNCMD),
+			point.x, point.y, this
+		);
+
+		pmenuPopup->DestroyMenu();
+		PostMessage(dwSelectionMade, 0, 0);
+	}
+	else if ((wParam == IDC_WHIRLOUT) && (lpMsgFilter->nmhdr.code == EN_MSGFILTER)
+		&& (lpMsgFilter->msg == WM_RBUTTONDOWN))
+
+	{
+		//if we get through here, we have trapped the right click event of the richeditctrl! 
+		CPoint point;
+		::GetCursorPos(&point); //where is the mouse?
+		CMenu menu; //lets display out context menu :) 
+		UINT dwSelectionMade;
+		VERIFY(menu.LoadMenu(IDR_HASH3));
+		CMenu* pmenuPopup = menu.GetSubMenu(0);
+		ASSERT(pmenuPopup != NULL);
+		dwSelectionMade = pmenuPopup->TrackPopupMenu((TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_NONOTIFY | TPM_RETURNCMD),
+			point.x, point.y, this
+		);
+
+		pmenuPopup->DestroyMenu();
+		PostMessage(dwSelectionMade, 0, 0);
+	}
+	else if ((wParam == IDC_INPUT) && (lpMsgFilter->nmhdr.code == EN_MSGFILTER)
+		&& (lpMsgFilter->msg == WM_RBUTTONDOWN))
+
+	{
+		//if we get through here, we have trapped the right click event of the richeditctrl! 
+		CPoint point;
+		::GetCursorPos(&point); //where is the mouse?
+		CMenu menu; //lets display out context menu :) 
+		UINT dwSelectionMade;
+		VERIFY(menu.LoadMenu(IDR_MENU1));
+		CMenu* pmenuPopup = menu.GetSubMenu(0);
+		ASSERT(pmenuPopup != NULL);
+		dwSelectionMade = pmenuPopup->TrackPopupMenu((TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_NONOTIFY | TPM_RETURNCMD),
+			point.x, point.y, this
+		);
+
+		pmenuPopup->DestroyMenu();
+		PostMessage(dwSelectionMade, 0, 0);
+	}
+
+	return CDialog::OnNotify(wParam, lParam, pResult);
+}
 
 BOOL ChasherDlg::OnInitDialog()
 {
@@ -274,6 +525,7 @@ BOOL ChasherDlg::OnInitDialog()
 	
 	if (ChasherDlg::IsWindowVisible() != 0)
 	{
+		mhwnd = ChasherDlg::m_hWnd;
 		checkbox = (CButton*)GetDlgItem(IDC_MINTRAY);
 		trayen = (CButton*)GetDlgItem(IDC_TRAYEN);
 		input_1 = (CRichEditCtrl*)GetDlgItem(IDC_INPUT);
@@ -282,18 +534,24 @@ BOOL ChasherDlg::OnInitDialog()
 		SHA256check = (CButton*)GetDlgItem(IDC_SHA256CHECK);
 		SHA512check = (CButton*)GetDlgItem(IDC_SHA512CHECK);
 		WHIRLcheck = (CButton*)GetDlgItem(IDC_WHIRLCHECK);
+		out1 = (CRichEditCtrl*)GetDlgItem(IDC_MD5OUT);
+		out2 = (CRichEditCtrl*)GetDlgItem(IDC_SHA256OUT);
+		out3 = (CRichEditCtrl*)GetDlgItem(IDC_SHA512OUT);
+		out4 = (CRichEditCtrl*)GetDlgItem(IDC_WHIRLOUT);
+		in = (CRichEditCtrl*)GetDlgItem(IDC_INPUT);
+		out1->SetEventMask(ENM_MOUSEEVENTS);
+		out2->SetEventMask(ENM_MOUSEEVENTS);
+		out3->SetEventMask(ENM_MOUSEEVENTS);
+		out4->SetEventMask(ENM_MOUSEEVENTS);
+		in->SetEventMask(ENM_MOUSEEVENTS);
+		out1->SetFont(&Font);
+		out2->SetFont(&Font);
+		out3->SetFont(&Font);
+		out4->SetFont(&Font);
 		MD5check->SetCheck(1);
 		SHA256check->SetCheck(1);
 		SHA512check->SetCheck(1);
 		WHIRLcheck->SetCheck(1);
-		CRichEditCtrl* rich1 = (CRichEditCtrl*)GetDlgItem(IDC_MD5OUT);
-		rich1->SetFont(&Font);
-		rich1 = (CRichEditCtrl*)GetDlgItem(IDC_SHA256OUT);
-		rich1->SetFont(&Font);
-		rich1 = (CRichEditCtrl*)GetDlgItem(IDC_SHA512OUT);
-		rich1->SetFont(&Font);
-		rich1 = (CRichEditCtrl*)GetDlgItem(IDC_WHIRLOUT);
-		rich1->SetFont(&Font);
 		ChasherDlg::CheckDlgButton(IDC_RADIO1, BST_CHECKED);
 		if (minimizeen)
 		{
@@ -353,144 +611,93 @@ HCURSOR ChasherDlg::OnQueryDragIcon()
 
 void ChasherDlg::OnBnClickedButton1()
 {
-	hashlen = 0;
+	char* output = new char[1000];
+	PSTR input = (PSTR)malloc(1000);
 	SetDlgItemTextA(ChasherDlg::m_hWnd, IDC_MD5OUT, "");
 	SetDlgItemTextA(ChasherDlg::m_hWnd, IDC_SHA256OUT, "");
 	SetDlgItemTextA(ChasherDlg::m_hWnd, IDC_SHA512OUT, "");
 	SetDlgItemTextA(ChasherDlg::m_hWnd, IDC_WHIRLOUT, "");
-	memset(buf,0, sizeof(buf));
-	memset(res, 0, sizeof(res));
-	memset(result, 0, sizeof(result));
-	//MD5check = (CButton*)GetDlgItem(IDC_MD5CHECK);
-	ChkBox1 = MD5check->GetCheck();
-	//SHA256check = (CButton*)GetDlgItem(IDC_SHA256CHECK);
-	ChkBox2 = SHA256check->GetCheck();
-	//SHA512check = (CButton*)GetDlgItem(IDC_SHA512CHECK);
-	ChkBox3 = SHA512check->GetCheck();
-	//WHIRLcheck = (CButton*)GetDlgItem(IDC_WHIRLCHECK);
-	ChkBox4 = WHIRLcheck->GetCheck();
+	int ChkBox1 = MD5check->GetCheck();
+	int ChkBox2 = SHA256check->GetCheck();
+	int ChkBox3 = SHA512check->GetCheck();
+	int ChkBox4 = WHIRLcheck->GetCheck();
+	memset(output, 0, sizeof(output));
 	
 	if (IsDlgButtonChecked(IDC_RADIO2) && !IsDlgButtonChecked(IDC_RADIO1))
 	{
-		GetDlgItemTextA(ChasherDlg::m_hWnd, IDC_INPUT2, input, 10000);
-		filex.open(input, ifstream::binary|fstream::in);
+		GetDlgItemTextA(mhwnd, IDC_INPUT2, input, MAX_PATH);
+		if (!strcmp(input, ""))
+		{
+			MessageBox(L"You didn't specified any file!!!\n Please select file to compute hash.", L"ERROR!!", MB_OK | MB_ICONERROR | MB_APPLMODAL | MB_TOPMOST);
+			goto end1;
+		}
+		filex.open(input, ifstream::binary|ifstream::in);
 		if (filex.is_open() == true)
 		{
+			filex.close();
 			if (ChkBox1 == BST_CHECKED)
 			{ 
-				MD5_Init(&md5Context);
-				while (filex.good()) 
-				{
-					filex.read(buf, sizeof(buf));
-					MD5_Update(&md5Context, buf, filex.gcount());
-				}
-				MD5_Final(res, &md5Context);
-				hex = bin2hex(res, MD5_DIGEST_LENGTH);
-				hashlen = MD5_DIGEST_LENGTH * 2;
-				memcpy(result, hex, hashlen);
-				SetDlgItemTextA(ChasherDlg::m_hWnd, IDC_MD5OUT, result);
-				memset(buf, 0, sizeof(buf));
-				filex.close();
+				hash(input,output,1,1);
+				SetDlgItemTextA(ChasherDlg::m_hWnd, IDC_MD5OUT, output);
+				memset(output, 0, sizeof(output));
 			}
 			if (ChkBox2 == BST_CHECKED)
 			{
-				filex.open(input, ifstream::binary | fstream::in);
-				SHA256_Init(&sha256Context);
-				while (filex.good())
-				{
-					filex.read(buf, sizeof(buf));
-					SHA256_Update(&sha256Context, buf, filex.gcount());
-				}
-				SHA256_Final(res, &sha256Context);
-				hex = bin2hex(res, SHA256_DIGEST_LENGTH);
-				hashlen = SHA256_DIGEST_LENGTH * 2;
-				memcpy(result, hex, hashlen);
-				SetDlgItemTextA(ChasherDlg::m_hWnd, IDC_SHA256OUT, result);
-				memset(buf, 0, sizeof(buf));
-				filex.close();
+				hash(input, output, 2, 1);
+				SetDlgItemTextA(ChasherDlg::m_hWnd, IDC_SHA256OUT, output);
 			}
 			if (ChkBox3 == BST_CHECKED)
 			{
-				filex.open(input, ifstream::binary | fstream::in);
-				SHA512_Init(&sha512Context);
-				while (filex.good())
-				{
-					filex.read(buf, sizeof(buf));
-					SHA512_Update(&sha512Context, buf, filex.gcount());
-				}
-				SHA512_Final(res, &sha512Context);
-				hex = bin2hex(res, SHA512_DIGEST_LENGTH);
-				hashlen = SHA512_DIGEST_LENGTH * 2;
-				memcpy(result, hex, hashlen);
-				SetDlgItemTextA(ChasherDlg::m_hWnd, IDC_SHA512OUT, result);
-				memset(buf, 0, sizeof(buf));
-				filex.close();
+				hash(input, output, 3, 1);
+				SetDlgItemTextA(ChasherDlg::m_hWnd, IDC_SHA512OUT, output);
 			}
 			if (ChkBox4 == BST_CHECKED)
 			{
-				filex.open(input, ifstream::binary | fstream::in);
-				WHIRLPOOL_Init(&whirlContext);
-				while (filex.good())
-				{
-					filex.read(buf, sizeof(buf));
-					WHIRLPOOL_Update(&whirlContext, buf, filex.gcount());
-				}
-				WHIRLPOOL_Final(res, &whirlContext);
-				hex = bin2hex(res, WHIRLPOOL_DIGEST_LENGTH);
-				hashlen = WHIRLPOOL_DIGEST_LENGTH * 2;
-				memcpy(result, hex, hashlen);
-				SetDlgItemTextA(ChasherDlg::m_hWnd, IDC_WHIRLOUT, result);
-				memset(buf, 0, sizeof(buf));
-				filex.close();
+				hash(input, output, 4, 1);
+				SetDlgItemTextA(ChasherDlg::m_hWnd, IDC_WHIRLOUT, output);
 			}
 			
 		}
 		else
 		{
-			MessageBoxA(NULL, "Error while opening file. Please try again.", "ERROR", MB_ICONERROR | MB_TOPMOST | MB_OK);
+			MessageBox(L"Error while opening file. Please try again.", L"ERROR", MB_OK | MB_ICONERROR | MB_APPLMODAL | MB_TOPMOST);
 		}
 
 	}
 	else
 	{
-		GetDlgItemTextA(ChasherDlg::m_hWnd, IDC_INPUT, input, 10000);
-		memcpy(input2, input, strlen(input));
+		GetDlgItemTextA(mhwnd, IDC_INPUT, input, 1000);
+		if (!strcmp(input, ""))
+		{
+			MessageBox( L"You didn't specified any text!!!\n Please select text to compute hash.", L"ERROR!!", MB_OK | MB_ICONERROR | MB_APPLMODAL | MB_TOPMOST);
+			goto end1;
+		}
 		if (ChkBox1 == BST_CHECKED)
 		{
-			MD5(input2, strlen(input), res);
-			hex = bin2hex(res, MD5_DIGEST_LENGTH);
-			hashlen = MD5_DIGEST_LENGTH * 2;
-			memcpy(result, hex, hashlen);
-			SetDlgItemTextA(ChasherDlg::m_hWnd, IDC_MD5OUT, result);
+			hash(input, output, 1, 0);
+			SetDlgItemTextA(ChasherDlg::m_hWnd, IDC_MD5OUT, output);
+			memset(output, 0, sizeof(output));
 		}
 		if (ChkBox2 == BST_CHECKED)
 		{
-			SHA256(input2, strlen(input), res);
-			hex = bin2hex(res, SHA256_DIGEST_LENGTH);
-			hashlen = SHA256_DIGEST_LENGTH * 2;
-			memcpy(result, hex, hashlen);
-			SetDlgItemTextA(ChasherDlg::m_hWnd, IDC_SHA256OUT, result);
+			hash(input, output, 2, 0);
+			SetDlgItemTextA(ChasherDlg::m_hWnd, IDC_SHA256OUT, output);
 		}
 		if (ChkBox3 == BST_CHECKED)
 		{
-			SHA512(input2, strlen(input), res);
-			hex = bin2hex(res, SHA512_DIGEST_LENGTH);
-			hashlen = SHA512_DIGEST_LENGTH * 2;
-			memcpy(result, hex, hashlen);
-			SetDlgItemTextA(ChasherDlg::m_hWnd, IDC_SHA512OUT, result);
+			hash(input, output, 3, 0);
+			SetDlgItemTextA(ChasherDlg::m_hWnd, IDC_SHA512OUT, output);
 		}
 		if (ChkBox4 == BST_CHECKED)
 		{
-			WHIRLPOOL(input2, strlen(input), res);
-			hex = bin2hex(res, WHIRLPOOL_DIGEST_LENGTH);
-			hashlen = WHIRLPOOL_DIGEST_LENGTH * 2;
-			memcpy(result, hex, hashlen);
-			SetDlgItemTextA(ChasherDlg::m_hWnd, IDC_WHIRLOUT, result);
+			hash(input, output, 4, 0);
+			SetDlgItemTextA(ChasherDlg::m_hWnd, IDC_WHIRLOUT, output);
 		}
 	
 	}
 	
-
+end1:
+	Sleep(100);
 	
 }
 
@@ -833,4 +1040,43 @@ void ChasherDlg::OnMinimize()
 			}
 		}
 }
+LRESULT ChasherDlg::OnCopy(WPARAM wparam, LPARAM lparam)
+{
+	out1->SetSel(0, -1);
+	out1->Copy();
+	return 1;
+}
+LRESULT ChasherDlg::OnCopy1(WPARAM wparam, LPARAM lparam)
+{
+	out2->SetSel(0, -1);
+	out2->Copy();
+	return 1;
+}
+LRESULT ChasherDlg::OnCopy2(WPARAM wparam, LPARAM lparam)
+{
+	out3->SetSel(0, -1);
+	out3->Copy();
+	return 1;
+}
+LRESULT ChasherDlg::OnCopy3(WPARAM wparam, LPARAM lparam)
+{
+	out4->SetSel(0, -1);
+	out4->Copy();
+	return 1;
+}
+LRESULT ChasherDlg::OnClear(WPARAM wparam, LPARAM lparam)
+{
+	in->SetSel(0, -1);
+	in->Clear();
+	return 1;
+}
+LRESULT ChasherDlg::OnPaste(WPARAM wparam, LPARAM lparam)
+{
+	in->Paste();
+	return 1;
+}
 
+void ChasherDlg::OnBnClickedButton2()
+{
+	out1->SetSel(1, -1);
+}

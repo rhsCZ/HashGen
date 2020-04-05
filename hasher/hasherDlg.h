@@ -33,6 +33,7 @@ public:
 	BOOL TrayUpdate();
 	BOOL TrayShow();
 	BOOL TrayHide();
+	void ChasherDlg::hash(char* input, char* output, int hashtype, bool typein);
 	void TraySetToolTip(LPCTSTR lpszToolTip);
 	void TraySetIcon(HICON hIcon);
 	void TraySetIcon(UINT nResourceID);
@@ -63,20 +64,16 @@ protected:
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnDestroy();
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
+	virtual BOOL OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult);
 	DECLARE_MESSAGE_MAP()
 	
 public:
 	afx_msg void OnBnClickedButton1();
 //	afx_msg void OnCbnSelchangeCombo1();
 	afx_msg void OnBnClickedExit();
-	unsigned char input2[1000] = {};
-	int hash=0;
-	LPSTR input = new char[1000];
+	//int hash=0;
 	CString combo;
 	CString buffer, stringout;
-	char* hex = {};
-	unsigned char res[WHIRLPOOL_DIGEST_LENGTH *4] = {};
-	char result[WHIRLPOOL_DIGEST_LENGTH * 4] = {};
 	BOOL retu = 0;
 	HANDLE thread1 = NULL;
 	CFont Font;
@@ -90,19 +87,18 @@ public:
 	CButton* WHIRLcheck = {};
 	afx_msg void OnBnClickedRadio1();
 	afx_msg void OnBnClickedRadio2();
+	CRichEditCtrl *out1;
+	CRichEditCtrl* out2;
+	CRichEditCtrl* out3;
+	CRichEditCtrl* out4;
+	CRichEditCtrl* in;
 	CRichEditCtrl* input_1 = {};
 	CMFCEditBrowseCtrl* input_2 = {};
 	int file_descript = 0;
 	fstream filex;
 	unsigned long file_size = 0;
 	char* file_buffer = {};
-	int hashlen;
 	int boxcheck;
-	int ChkBox1;
-	int ChkBox2;
-	int ChkBox3;
-	int ChkBox4;
-	char buf[1024 * 500] = {};
 	MD5_CTX md5Context;
 	SHA256_CTX sha256Context;
 	SHA512_CTX sha512Context;
@@ -118,7 +114,11 @@ public:
 	afx_msg void OnMinimize();
 	afx_msg void OnBnClickedMinEn();
 	afx_msg void OnBnClickedTrayEn();
-	//int ChasherDlg::RegCrtKey(HKEY key, LPSTR keyloc, REGSAM access);
-	//int ChasherDlg::RegGetKey(HKEY key, LPSTR keyloc, REGSAM access, unsigned long type, LPSTR name, void* outdatax);
-	//bool ChasherDlg::RegSetKey(HKEY key, LPSTR keyloc, unsigned long type, unsigned long size, REGSAM access, LPSTR name, void* indatax);
+	afx_msg LRESULT OnCopy(WPARAM wparam, LPARAM lparam);
+	afx_msg LRESULT OnCopy1(WPARAM wparam, LPARAM lparam);
+	afx_msg LRESULT OnCopy2(WPARAM wparam, LPARAM lparam);
+	afx_msg LRESULT OnCopy3(WPARAM wparam, LPARAM lparam);
+	afx_msg LRESULT OnClear(WPARAM wparam, LPARAM lparam);
+	afx_msg LRESULT OnPaste(WPARAM wparam, LPARAM lparam);
+	afx_msg void OnBnClickedButton2();
 };
