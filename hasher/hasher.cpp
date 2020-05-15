@@ -25,7 +25,7 @@ BOOL ChasherApp::InitInstance()
 	AfxInitRichEdit2();
 	CWinApp::InitInstance();
 	//SetErrorMode(0); //only debug
-	if (LoadLibraryA("libssl-3.dll") == NULL) //not important for crypto
+	/*if (LoadLibraryA("libssl-3.dll") == NULL) //not important for crypto
 	{
 		errormes = GetLastError();
 		error++;
@@ -34,11 +34,11 @@ BOOL ChasherApp::InitInstance()
 	{
 		//errormes = GetLastError(); //for debug
 		error++;
-	}*/
+	}
 	if (error > 0)
 	{
 		exit(-5);
-	}
+	}*/
 	//SetDlgItemTextW(IDC_COMBO1, L"MD5");
 	
 	//SetRegistryKey(_T("Local AppWizard-Generated Applications")); //not needed

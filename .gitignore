@@ -7,3 +7,5 @@ hasher/output/
 releases/
 backup/
 .gitignore
+hasher/depends.exe
+hasher/depends.dll

@@ -1605,14 +1605,12 @@
     <None Include="libssl\x32\Release\engines-3\capi.pdb" />
     <None Include="libssl\x32\Release\engines-3\padlock.dll" />
     <None Include="libssl\x32\Release\engines-3\padlock.pdb" />
-    <None Include="libssl\x64\Debug\engines-3\capi.dll" />
-    <None Include="libssl\x64\Debug\engines-3\capi.pdb" />
-    <None Include="libssl\x64\Debug\engines-3\padlock.dll" />
-    <None Include="libssl\x64\Debug\engines-3\padlock.pdb" />
     <None Include="libssl\x64\Release\engines-3\capi.dll" />
     <None Include="libssl\x64\Release\engines-3\capi.pdb" />
     <None Include="libssl\x64\Release\engines-3\padlock.dll" />
     <None Include="libssl\x64\Release\engines-3\padlock.pdb" />
+    <None Include="libssl\x64\Release\ossl_static.pdb" />
+    <None Include="libssl\x32\Release\ossl_static.pdb" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\hasher.ico">
@@ -1621,12 +1619,8 @@
   </ItemGroup>
   <ItemGroup>
     <Library Include="libcrypto.lib" />
-    <Library Include="libssl\x32\Debug\libcrypto.lib" />
-    <Library Include="libssl\x32\Debug\libssl.lib" />
     <Library Include="libssl\x32\Release\libcrypto.lib" />
     <Library Include="libssl\x32\Release\libssl.lib" />
-    <Library Include="libssl\x64\Debug\libcrypto.lib" />
-    <Library Include="libssl\x64\Debug\libssl.lib" />
     <Library Include="libssl\x64\Release\libcrypto.lib" />
     <Library Include="libssl\x64\Release\libssl.lib" />
   </ItemGroup>

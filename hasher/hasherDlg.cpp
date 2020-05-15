@@ -31,16 +31,16 @@ unsigned long get_size_by_fd(int fd) {
 	if (fstat(fd, &statbuf) < 0) exit(-1);
 	return statbuf.st_size;
 }
-char* bin2hex(const unsigned char* bin, size_t len)
+char* bin2hex(const unsigned char* bin, size_t len) //binary(11101100) to hex(EC) convert function
 {
 	char* out;
 	size_t  i;
 
-	if (bin == NULL || len == 0)
+	if (bin == NULL || len == 0) //if empty bin or len is zero return NULL
 		return NULL;
 
-	out = (char*)malloc(len * 2 + 1);
-	for (i = 0; i < len; i++) {
+	out = (char*)malloc(len * 2 + 1);//allocate char array in heap for char pointer out
+	for (i = 0; i < len; i++) {//cycle 
 		out[i * 2] = "0123456789abcdef"[bin[i] >> 4];
 		out[i * 2 + 1] = "0123456789abcdef"[bin[i] & 0x0F];
 	}
@@ -48,7 +48,7 @@ char* bin2hex(const unsigned char* bin, size_t len)
 
 	return out;
 }
-void ChasherDlg::hash(char* input, char* output, int hashtype, bool typein)
+void ChasherDlg::hash(char* input, char* output, int hashtype, bool typein) //hash function
 {
 	unsigned char input2[1000] = {};
 	char *buf = (char*)malloc(1024 * 500);
