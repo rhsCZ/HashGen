@@ -6,6 +6,9 @@
 hasher/output/
 releases/
 backup/
-.gitignore
 hasher/depends.exe
 hasher/depends.dll
+rhscz.cer
+rhscz.pfx
+rhscz.pvk
+sign.sgui
