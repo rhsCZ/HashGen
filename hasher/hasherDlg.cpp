@@ -624,7 +624,7 @@ BOOL ChasherDlg::OnInitDialog()
 		
 	}
 	cmdarg = CommandLineToArgvA(GetCommandLineA(), &argc);
-	if (argc = 2)
+	if (argc == 2)
 	{
 		ChasherDlg::OnBnClickedRadio2();
 		SetDlgItemTextA(ChasherDlg::m_hWnd, IDC_INPUT2, cmdarg[1]);
