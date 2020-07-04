@@ -121,4 +121,8 @@ public:
 	afx_msg LRESULT OnClear(WPARAM wparam, LPARAM lparam);
 	afx_msg LRESULT OnPaste(WPARAM wparam, LPARAM lparam);
 	afx_msg void OnBnClickedButton2();
+	PCHAR* CommandLineToArgvA(PCHAR CmdLine, int* _argc);
+	afx_msg void OnBnClickedInstext();
+	afx_msg void OnBnClickedUninext();
+	bool ExtractResource(uint16_t ResourceID, char* OutputFileName, char* path, const char* ResType);
 };

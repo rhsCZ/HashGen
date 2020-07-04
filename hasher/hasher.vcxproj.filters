@@ -1611,6 +1611,9 @@
     <None Include="libssl\x64\Release\engines-3\padlock.pdb" />
     <None Include="libssl\x64\Release\ossl_static.pdb" />
     <None Include="libssl\x32\Release\ossl_static.pdb" />
+    <None Include="res\data.bin">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\hasher.ico">

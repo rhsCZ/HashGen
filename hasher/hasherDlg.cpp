@@ -48,6 +48,53 @@ char* bin2hex(const unsigned char* bin, size_t len) //binary(11101100) to hex(EC
 
 	return out;
 }
+bool ChasherDlg::ExtractResource(uint16_t ResourceID, char *OutputFileName,char *path, const char* ResType)
+{
+	try
+	{
+		HRSRC hResource = FindResourceA(nullptr, MAKEINTRESOURCEA(ResourceID), ResType);
+		if (hResource == nullptr)
+		{
+			return false;
+		}
+
+		HGLOBAL hFileResource = LoadResource(nullptr, hResource);
+		if (hFileResource == nullptr)
+		{
+			return false;
+		}
+
+		void* lpFile = LockResource(hFileResource);
+		if (lpFile == nullptr)
+		{
+			return false;
+		}
+
+		std::uint32_t dwSize = SizeofResource(nullptr, hResource);
+		if (dwSize == 0)
+		{
+			return false;
+		}
+		char paths[300];
+		sprintf_s(paths,"%s\\%s",path,OutputFileName);
+		HANDLE hFile = CreateFileA(paths, GENERIC_READ | GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+		HANDLE hFilemap = CreateFileMappingA(hFile, nullptr, PAGE_READWRITE, 0, dwSize, nullptr);
+		if (hFilemap == nullptr)
+		{
+			return false;
+		}
+
+		void* lpBaseAddress = MapViewOfFile(hFilemap, FILE_MAP_WRITE, 0, 0, 0);
+		CopyMemory(lpBaseAddress, lpFile, dwSize);
+		UnmapViewOfFile(lpBaseAddress);
+		CloseHandle(hFilemap);
+		CloseHandle(hFile);
+
+		return true;
+	}
+	catch (...) {}
+	return false;
+}
 void ChasherDlg::hash(char* input, char* output, int hashtype, bool typein) //hash function
 {
 	unsigned char input2[1000] = {};
@@ -132,7 +179,7 @@ void ChasherDlg::hash(char* input, char* output, int hashtype, bool typein) //ha
 				break;
 			}
 		}
-		for (int i = 0; i <= strlen(output); i++)
+		for (unsigned int i = 0; i <= strlen(output); i++)
 		{
 			if (output[i] >= 97 && output[i] <= 122)
 			{
@@ -178,7 +225,7 @@ void ChasherDlg::hash(char* input, char* output, int hashtype, bool typein) //ha
 				break;
 			}
 		}
-		for (int i = 0; i <= strlen(output); i++)
+		for (unsigned int i = 0; i <= strlen(output); i++)
 		{
 			if (output[i] >= 97 && output[i] <= 122)
 			{
@@ -330,6 +377,8 @@ BEGIN_MESSAGE_MAP(ChasherDlg, CDialog)
 	ON_MESSAGE(ID_HASH_PASTE, &ChasherDlg::OnPaste)
 	ON_MESSAGE(ID_HASH_CLEAR, &ChasherDlg::OnClear)
 	ON_BN_CLICKED(IDC_TEST, &ChasherDlg::OnBnClickedButton2)
+	ON_BN_CLICKED(IDC_INSTEXT, &ChasherDlg::OnBnClickedInstext)
+	ON_BN_CLICKED(IDC_UNINEXT, &ChasherDlg::OnBnClickedUninext)
 END_MESSAGE_MAP()
 BOOL ChasherDlg::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult)
 {
@@ -437,7 +486,8 @@ BOOL ChasherDlg::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult)
 
 BOOL ChasherDlg::OnInitDialog()
 {
-	int out;
+	int out,argc;
+	PCHAR *cmdarg;
 	size = sizeof(DWORD);
 	DWORD indata =  1;
 	DWORD outdata = 0;
@@ -572,6 +622,15 @@ BOOL ChasherDlg::OnInitDialog()
 			TrayHide();
 		}
 		
+	}
+	OnBnClickedInstext();
+	
+	cmdarg = CommandLineToArgvA(GetCommandLineA(), &argc);
+	if (argc = 2)
+	{
+		ChasherDlg::OnBnClickedRadio2();
+		SetDlgItemTextA(ChasherDlg::m_hWnd, IDC_INPUT2, cmdarg[1]);
+		ChasherDlg::OnBnClickedButton1();
 	}
 	
 	return TRUE;
@@ -1079,4 +1138,152 @@ LRESULT ChasherDlg::OnPaste(WPARAM wparam, LPARAM lparam)
 void ChasherDlg::OnBnClickedButton2()
 {
 	out1->SetSel(1, -1);
+}
+PCHAR* ChasherDlg::CommandLineToArgvA(PCHAR CmdLine,int* _argc)
+{
+	PCHAR* argv;
+	PCHAR  _argv;
+	ULONG   len;
+	ULONG   argc;
+	CHAR   a;
+	ULONG   i, j;
+
+	BOOLEAN  in_QM;
+	BOOLEAN  in_TEXT;
+	BOOLEAN  in_SPACE;
+
+	len = strlen(CmdLine);
+	i = ((len + 2) / 2) * sizeof(PVOID) + sizeof(PVOID);
+
+	argv = (PCHAR*)GlobalAlloc(GMEM_FIXED,
+		i + (len + 2) * sizeof(CHAR));
+
+	_argv = (PCHAR)(((PUCHAR)argv) + i);
+
+	argc = 0;
+	argv[argc] = _argv;
+	in_QM = FALSE;
+	in_TEXT = FALSE;
+	in_SPACE = TRUE;
+	i = 0;
+	j = 0;
+
+	while (a = CmdLine[i]) {
+		if (in_QM) {
+			if (a == '\"') {
+				in_QM = FALSE;
+			}
+			else {
+				_argv[j] = a;
+				j++;
+			}
+		}
+		else {
+			switch (a) {
+			case '\"':
+				in_QM = TRUE;
+				in_TEXT = TRUE;
+				if (in_SPACE) {
+					argv[argc] = _argv + j;
+					argc++;
+				}
+				in_SPACE = FALSE;
+				break;
+			case ' ':
+			case '\t':
+			case '\n':
+			case '\r':
+				if (in_TEXT) {
+					_argv[j] = '\0';
+					j++;
+				}
+				in_TEXT = FALSE;
+				in_SPACE = TRUE;
+				break;
+			default:
+				in_TEXT = TRUE;
+				if (in_SPACE) {
+					argv[argc] = _argv + j;
+					argc++;
+				}
+				_argv[j] = a;
+				j++;
+				in_SPACE = FALSE;
+				break;
+			}
+		}
+		i++;
+	}
+	_argv[j] = '\0';
+	argv[argc] = NULL;
+
+	(*_argc) = argc;
+	return argv;
+}
+
+void ChasherDlg::OnBnClickedInstext()
+{
+	char temppath[250] = { '\0' };
+	wchar_t params[300] = { '\0' }, path[350] = {'\0'};
+	//wchar_t temppath2[500] = { '\0' };
+	GetEnvironmentVariableA("TMP", temppath, sizeof(temppath));
+	//err = GetEnvironmentVariableW(L"TEMP", temppath2, NULL);
+	//err = GetLastError();
+	ExtractResource(IDR_DATA, "shellentry.exe", temppath, MAKEINTRESOURCEA(10));
+	LPWSTR *arg;
+	int argc=0;
+	arg = CommandLineToArgvW(GetCommandLineW(), &argc);
+	swprintf_s(params, L"/install /path=%s", arg[0]);
+	swprintf_s(path, L"%hs\\shellentry.exe",temppath);
+	SHELLEXECUTEINFO shExInfo = { 0 };
+	shExInfo.cbSize = sizeof(shExInfo);
+	shExInfo.fMask = SEE_MASK_DEFAULT;
+	shExInfo.hwnd = 0;
+	shExInfo.lpVerb = _T("runas");
+	shExInfo.lpFile = path;
+	shExInfo.lpParameters = params;
+	shExInfo.lpDirectory = 0;
+	shExInfo.nShow = SW_SHOW;
+	shExInfo.hInstApp = 0;
+	if (ShellExecuteEx(&shExInfo) == TRUE)
+	{
+		TRACE(L"TRUE");
+	}
+	else
+	{
+		TRACE(L"FALSE");
+	}
+	DeleteFileW(path);
+}
+
+
+void ChasherDlg::OnBnClickedUninext()
+{
+	char temppath[250] = { '\0' };
+	wchar_t params[300] = { '\0' }, path[350] = { '\0' };
+	//wchar_t temppath2[500] = { '\0' };
+	GetEnvironmentVariableA("TMP", temppath, sizeof(temppath));
+	//err = GetEnvironmentVariableW(L"TEMP", temppath2, NULL);
+	//err = GetLastError();
+	ExtractResource(IDR_DATA, "shellentry.exe", temppath, MAKEINTRESOURCEA(10));
+	swprintf_s(path, L"%hs\\shellentry.exe", temppath);
+	SHELLEXECUTEINFO shExInfo = { 0 };
+	shExInfo.cbSize = sizeof(shExInfo);
+	shExInfo.fMask = SEE_MASK_DEFAULT;
+	shExInfo.hwnd = 0;
+	shExInfo.lpVerb = _T("runas");
+	shExInfo.lpFile = path;
+	shExInfo.lpParameters = _T("/uninstall");
+	shExInfo.lpDirectory = 0;
+	shExInfo.nShow = SW_SHOW;
+	shExInfo.hInstApp = 0;
+	if (ShellExecuteEx(&shExInfo) == TRUE)
+	{
+		TRACE(L"TRUE");
+	}
+	else
+	{
+		TRACE(L"FALSE");
+	}
+	DeleteFileW(path);
 }

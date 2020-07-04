@@ -3,12 +3,12 @@
 ################################################################################
 
 .vs/
-hasher/output/
 releases/
-backup/
-hasher/depends.exe
-hasher/depends.dll
 rhscz.cer
 rhscz.pfx
 rhscz.pvk
 sign.sgui
+output/
+wdd/out
+wdd/.vs
+hasher/hasher.aps

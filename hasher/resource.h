@@ -10,6 +10,7 @@
 #define IDR_HASH2                       136
 #define IDR_HASH3                       137
 #define IDR_MENU1                       138
+#define IDR_DATA                        139
 #define IDC_BUTTON1                     1000
 #define IDC_INPUT                       1001
 #define IDC_COMBO1                      1002
@@ -28,6 +29,9 @@
 #define IDC_MINTRAY                     1020
 #define IDC_TRAYEN                      1021
 #define IDC_TEST                        1022
+#define IDC_INSTEXT                     1023
+#define IDC_BUTTON3                     1024
+#define IDC_UNINEXT                     1024
 #define ID_MENU_OPEN                    32771
 #define ID_MENU_CLOSE                   32772
 #define ID_HASH_COPY                    32773
@@ -41,9 +45,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        139
+#define _APS_NEXT_RESOURCE_VALUE        140
 #define _APS_NEXT_COMMAND_VALUE         32783
-#define _APS_NEXT_CONTROL_VALUE         1023
+#define _APS_NEXT_CONTROL_VALUE         1025
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
