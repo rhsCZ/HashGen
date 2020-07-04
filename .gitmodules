@@ -1,0 +1,3 @@
+[submodule "wdd"]
+	path = wdd
+	url = https://github.com/sryze/wdd
