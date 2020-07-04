@@ -623,8 +623,6 @@ BOOL ChasherDlg::OnInitDialog()
 		}
 		
 	}
-	OnBnClickedInstext();
-	
 	cmdarg = CommandLineToArgvA(GetCommandLineA(), &argc);
 	if (argc = 2)
 	{
