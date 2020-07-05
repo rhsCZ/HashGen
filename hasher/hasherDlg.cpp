@@ -1231,7 +1231,7 @@ void ChasherDlg::OnBnClickedInstext()
 	LPWSTR *arg;
 	int argc=0;
 	arg = CommandLineToArgvW(GetCommandLineW(), &argc);
-	swprintf_s(params, L"/install /path=%s", arg[0]);
+	swprintf_s(params, L"/install /path=\"%s\"", arg[0]);
 	swprintf_s(path, L"%hs\\shellentry.exe",temppath);
 	SHELLEXECUTEINFO shExInfo = { 0 };
 	shExInfo.cbSize = sizeof(shExInfo);

@@ -187,9 +187,9 @@ int main(int argc,char* argv[])
 {
 	if (!strcmp(argv[1], "/install"))
 	{
-		
-		char path[60],path2[60];
-		sscanf_s(argv[2], "/path=%s", path, (unsigned int)sizeof(path));
+
+		char path[500] = { '\0' }, path2[500] = {'\0'};
+		sscanf_s(argv[2], "/path=%[^\n]s", path, (unsigned int)sizeof(path));
 		int error;
 		sprintf_s(path2, "\"%s\" %%1\0", path);
 		error = RegCrtKey(HKEY_CLASSES_ROOT, (LPSTR)"*\\Shell\\Compute File Hash\\Command", KEY_ALL_ACCESS | KEY_WOW64_64KEY);
