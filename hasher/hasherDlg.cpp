@@ -907,7 +907,7 @@ void ChasherDlg::TraySetToolTip(LPCTSTR lpszToolTip)
 {
 	ASSERT(strlen((char*)lpszToolTip) > 0 && strlen((char*)lpszToolTip) < 64);
 
-	strcpy((char*)m_nidIconData.szTip, (char*)lpszToolTip);
+	wcscpy(m_nidIconData.szTip,lpszToolTip);
 	m_nidIconData.uFlags |= NIF_TIP;
 }
 

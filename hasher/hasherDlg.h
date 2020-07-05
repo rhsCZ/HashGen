@@ -19,12 +19,12 @@ class ChasherDlg : public CDialog
 private:
 	BOOL m_bMinimizeToTray;
 	BOOL			m_bTrayIconVisible;
-	NOTIFYICONDATA	m_nidIconData;
 	CMenu			m_mnuTrayMenu;
 	UINT			m_nDefaultMenuItem;
 	afx_msg LRESULT OnTrayNotify(WPARAM wParam, LPARAM lParam);
 // Construction
 public:
+	NOTIFYICONDATA	m_nidIconData;
 	ChasherDlg(CWnd* pParent = nullptr);
 	void TraySetMinimizeToTray(BOOL bMinimizeToTray = TRUE);
 	BOOL TraySetMenu(UINT nResourceID, UINT nDefaultPos = 0);

@@ -24,6 +24,7 @@ public:
 // Overrides
 public:
 	virtual BOOL InitInstance();
+	virtual int ExitInstance();
 	int error = 0;
 	DWORD errormes = 0;
 	CDialog* m_pDialog = new CDialog;

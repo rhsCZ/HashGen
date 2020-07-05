@@ -95,4 +95,9 @@ BOOL ChasherApp::InitInstance()
 
 	return FALSE;
 }
-
+int ChasherApp::ExitInstance()
+{
+	ChasherDlg abc;
+	Shell_NotifyIconW(NIM_DELETE, &abc.m_nidIconData);
+	return 0;
+}
