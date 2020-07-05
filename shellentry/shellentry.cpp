@@ -191,7 +191,7 @@ int main(int argc,char* argv[])
 		char path[500] = { '\0' }, path2[500] = {'\0'};
 		sscanf_s(argv[2], "/path=%[^\n]s", path, (unsigned int)sizeof(path));
 		int error;
-		sprintf_s(path2, "\"%s\" %%1\0", path);
+		sprintf_s(path2, "\"%s\" \"%%1\"\0", path);
 		error = RegCrtKey(HKEY_CLASSES_ROOT, (LPSTR)"*\\Shell\\Compute File Hash\\Command", KEY_ALL_ACCESS | KEY_WOW64_64KEY);
 		RegSetKey(HKEY_CLASSES_ROOT, (LPSTR)"*\\Shell\\Compute File Hash\\Command", REG_SZ, KEY_ALL_ACCESS | KEY_WOW64_64KEY, NULL,strlen(path2), &path2);
 	}
