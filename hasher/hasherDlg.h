@@ -78,6 +78,7 @@ public:
 	HANDLE thread1 = NULL;
 	CFont Font;
 	bool trayenable;
+	bool lowerenable;
 	bool minimizeen;
 	CButton* trayen = {};
 	CButton* checkbox = {};
@@ -85,6 +86,7 @@ public:
 	CButton* SHA256check = {};
 	CButton* SHA512check = {};
 	CButton* WHIRLcheck = {};
+	CButton* LowerCase = {};
 	afx_msg void OnBnClickedRadio1();
 	afx_msg void OnBnClickedRadio2();
 	CRichEditCtrl *out1;
@@ -125,4 +127,5 @@ public:
 	afx_msg void OnBnClickedInstext();
 	afx_msg void OnBnClickedUninext();
 	bool ExtractResource(uint16_t ResourceID, char* OutputFileName, char* path, const char* ResType);
+	afx_msg void OnBnClickedLowercase();
 };

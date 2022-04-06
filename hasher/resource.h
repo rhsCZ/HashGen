@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ generated include file.
-// Used by hasher.rc
+// Microsoft Visual C++ vygeneroval soubor zahrnutí.
+// Použito hasher.rc
 //
 #define IDD_HASHER2_DIALOG              102
 #define IDR_ICON                        128
@@ -32,6 +32,8 @@
 #define IDC_INSTEXT                     1023
 #define IDC_BUTTON3                     1024
 #define IDC_UNINEXT                     1024
+#define IDC_CHECK1                      1025
+#define IDC_LOWERCASE                   1025
 #define ID_MENU_OPEN                    32771
 #define ID_MENU_CLOSE                   32772
 #define ID_HASH_COPY                    32773
@@ -47,7 +49,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        140
 #define _APS_NEXT_COMMAND_VALUE         32783
-#define _APS_NEXT_CONTROL_VALUE         1025
+#define _APS_NEXT_CONTROL_VALUE         1026
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -17,9 +17,9 @@ bool RegSetKey(HKEY key, LPSTR keyloc, unsigned long type, REGSAM access, LPSTR 
 int RegCrtKey(HKEY key, LPSTR keyloc, REGSAM access);
 template<class TYPE>
 int RegGetKey(HKEY key, LPSTR keyloc, unsigned long type, REGSAM access, LPSTR name, TYPE outdatax);
-#pragma warning( disable:4244)
-#pragma warning(disable:6387)
-#pragma warning(disable:6011)
+#pragma warning( disable:4244 6387 6011 28182)
+//#pragma warning(disable:6387)
+//#pragma warning(disable:6011)
 unsigned long get_size_by_fd(int fd);
 char* bin2hex(const unsigned char* bin, size_t len);
 #ifdef _DEBUG
@@ -286,30 +286,32 @@ bool RegSetKey(HKEY key,LPSTR keyloc,unsigned long type, REGSAM access,LPSTR nam
 }
 int RegCrtKey(HKEY key, LPSTR keyloc, REGSAM access)
 {
-	HKEY keyval;
-	int err;
+	HKEY keyval = nullptr;
+	int err,errr;
 	char errorbuf[200];
 	DWORD dispvalue;
-	err = RegCreateKeyExA(key, keyloc, NULL, NULL, REG_OPTION_NON_VOLATILE, access,NULL, &keyval, &dispvalue);
+	errr = RegCreateKeyExA(key, keyloc, NULL, NULL, REG_OPTION_NON_VOLATILE, access,NULL, &keyval, &dispvalue);
 	CloseHandle(keyval);
-	if (err == ERROR_SUCCESS)
+	if (errr == ERROR_SUCCESS)
 	{
 		if (dispvalue == REG_CREATED_NEW_KEY)
 		{
-			return 1;
+			err = 1;
 		}
 		else
 		{
-			return 2;
+			err = 2;
 		}
 	}
 	else
 	{
-		sprintf_s(errorbuf, "%i\n", err);
+		sprintf_s(errorbuf, "%i\n", errr);
 		ASSERT(errorbuf);
-		return 0;
+		err = errr;
 	}
 	//return onerr;
+	CloseHandle(keyval);
+	return err;
 }
 template<class TYPE>
 int RegGetKey(HKEY key, LPSTR keyloc, unsigned long type, REGSAM access, LPSTR name, TYPE outdatax)
@@ -379,6 +381,7 @@ BEGIN_MESSAGE_MAP(ChasherDlg, CDialog)
 	ON_BN_CLICKED(IDC_TEST, &ChasherDlg::OnBnClickedButton2)
 	ON_BN_CLICKED(IDC_INSTEXT, &ChasherDlg::OnBnClickedInstext)
 	ON_BN_CLICKED(IDC_UNINEXT, &ChasherDlg::OnBnClickedUninext)
+	ON_BN_CLICKED(IDC_LOWERCASE, &ChasherDlg::OnBnClickedLowercase)
 END_MESSAGE_MAP()
 BOOL ChasherDlg::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult)
 {
@@ -566,6 +569,25 @@ BOOL ChasherDlg::OnInitDialog()
 				trayenable = 0;
 			}
 		}
+
+		out = RegGetKey(HKEY_CURRENT_USER, "Software\\HashGen", REG_DWORD, KEY_ALL_ACCESS | KEY_WOW64_64KEY, "LowerCaseEnable", &outdata);
+		if (out == 2)
+		{
+
+			RegSetKey(HKEY_CURRENT_USER, "Software\\HashGen", REG_DWORD, KEY_ALL_ACCESS | KEY_WOW64_64KEY, "LowerCaseEnable", &indata);
+			lowerenable = 1;
+		}
+		else
+		{
+			if (outdata == 1)
+			{
+				lowerenable = 1;
+			}
+			else
+			{
+				lowerenable = 0;
+			}
+		}
 	}
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 	SetIcon(m_hIcon, FALSE);		// Set small icon
@@ -586,6 +608,7 @@ BOOL ChasherDlg::OnInitDialog()
 		WHIRLcheck = (CButton*)GetDlgItem(IDC_WHIRLCHECK);
 		out1 = (CRichEditCtrl*)GetDlgItem(IDC_MD5OUT);
 		out2 = (CRichEditCtrl*)GetDlgItem(IDC_SHA256OUT);
+		LowerCase = (CButton*)GetDlgItem(IDC_LOWERCASE);
 		out3 = (CRichEditCtrl*)GetDlgItem(IDC_SHA512OUT);
 		out4 = (CRichEditCtrl*)GetDlgItem(IDC_WHIRLOUT);
 		in = (CRichEditCtrl*)GetDlgItem(IDC_INPUT);
@@ -620,6 +643,14 @@ BOOL ChasherDlg::OnInitDialog()
 		{
 			CheckDlgButton(IDC_TRAYEN, BST_UNCHECKED);
 			TrayHide();
+		}
+		if (lowerenable)
+		{
+			CheckDlgButton(IDC_LOWERCASE, BST_CHECKED);
+		}
+		else
+		{
+			CheckDlgButton(IDC_LOWERCASE, BST_UNCHECKED);
 		}
 		
 	}
@@ -695,23 +726,54 @@ void ChasherDlg::OnBnClickedButton1()
 			if (ChkBox1 == BST_CHECKED)
 			{ 
 				hash(input,output,1,1);
+				if (lowerenable)
+				{
+					for (unsigned int i = 0; i < strlen(output); i++)
+					{
+						output[i] = tolower(output[i]);
+					}
+				}
 				SetDlgItemTextA(ChasherDlg::m_hWnd, IDC_MD5OUT, output);
 				memset(output, 0, sizeof(output));
 			}
 			if (ChkBox2 == BST_CHECKED)
 			{
 				hash(input, output, 2, 1);
+				if (lowerenable)
+				{
+					for (unsigned int i = 0; i < strlen(output); i++)
+					{
+						output[i] = tolower(output[i]);
+					}
+				}
 				SetDlgItemTextA(ChasherDlg::m_hWnd, IDC_SHA256OUT, output);
+				memset(output, 0, sizeof(output));
 			}
 			if (ChkBox3 == BST_CHECKED)
 			{
 				hash(input, output, 3, 1);
+				if (lowerenable)
+				{
+					for (unsigned int i = 0; i < strlen(output); i++)
+					{
+						output[i] = tolower(output[i]);
+					}
+				}
 				SetDlgItemTextA(ChasherDlg::m_hWnd, IDC_SHA512OUT, output);
+				memset(output, 0, sizeof(output));
 			}
 			if (ChkBox4 == BST_CHECKED)
 			{
 				hash(input, output, 4, 1);
+				if (lowerenable)
+				{
+					for (unsigned int i = 0; i < strlen(output); i++)
+					{
+						output[i] = tolower(output[i]);
+					}
+				}
 				SetDlgItemTextA(ChasherDlg::m_hWnd, IDC_WHIRLOUT, output);
+				memset(output, 0, sizeof(output));
 			}
 			
 		}
@@ -732,23 +794,54 @@ void ChasherDlg::OnBnClickedButton1()
 		if (ChkBox1 == BST_CHECKED)
 		{
 			hash(input, output, 1, 0);
+			if (lowerenable)
+			{
+				for (unsigned int i = 0; i < strlen(output); i++)
+				{
+					output[i] = tolower(output[i]);
+				}
+			}
 			SetDlgItemTextA(ChasherDlg::m_hWnd, IDC_MD5OUT, output);
 			memset(output, 0, sizeof(output));
 		}
 		if (ChkBox2 == BST_CHECKED)
 		{
 			hash(input, output, 2, 0);
+			if (lowerenable)
+			{
+				for (unsigned int i = 0; i < strlen(output); i++)
+				{
+					output[i] = tolower(output[i]);
+				}
+			}
 			SetDlgItemTextA(ChasherDlg::m_hWnd, IDC_SHA256OUT, output);
+			memset(output, 0, sizeof(output));
 		}
 		if (ChkBox3 == BST_CHECKED)
 		{
 			hash(input, output, 3, 0);
+			if (lowerenable)
+			{
+				for (unsigned int i = 0; i < strlen(output); i++)
+				{
+					output[i] = tolower(output[i]);
+				}
+			}
 			SetDlgItemTextA(ChasherDlg::m_hWnd, IDC_SHA512OUT, output);
+			memset(output, 0, sizeof(output));
 		}
 		if (ChkBox4 == BST_CHECKED)
 		{
 			hash(input, output, 4, 0);
+			if (lowerenable)
+			{
+				for (unsigned int i = 0; i < strlen(output); i++)
+				{
+					output[i] = tolower(output[i]);
+				}
+			}
 			SetDlgItemTextA(ChasherDlg::m_hWnd, IDC_WHIRLOUT, output);
+			memset(output, 0, sizeof(output));
 		}
 	
 	}
@@ -1141,10 +1234,10 @@ PCHAR* ChasherDlg::CommandLineToArgvA(PCHAR CmdLine,int* _argc)
 {
 	PCHAR* argv;
 	PCHAR  _argv;
-	ULONG   len;
+	size_t   len;
 	ULONG   argc;
 	CHAR   a;
-	ULONG   i, j;
+	size_t   i, j;
 
 	BOOLEAN  in_QM;
 	BOOLEAN  in_TEXT;
@@ -1284,4 +1377,24 @@ void ChasherDlg::OnBnClickedUninext()
 		TRACE(L"FALSE");
 	}
 	DeleteFileW(path);
+}
+
+
+void ChasherDlg::OnBnClickedLowercase()
+{
+	int tren;
+	DWORD indata = 0;
+	tren = LowerCase->GetCheck();
+	if (tren == BST_CHECKED)
+	{
+		indata = 1;
+		RegSetKey(HKEY_CURRENT_USER, "Software\\HashGen", REG_DWORD, KEY_ALL_ACCESS | KEY_WOW64_64KEY, "LowerCaseEnable", &indata);
+		lowerenable = true;
+	}
+	else
+	{
+		indata = 0;
+		RegSetKey(HKEY_CURRENT_USER, "Software\\HashGen", REG_DWORD, KEY_ALL_ACCESS | KEY_WOW64_64KEY, "LowerCaseEnable", &indata);
+		lowerenable = false;
+	}
 }
